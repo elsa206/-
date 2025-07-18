@@ -1,7 +1,9 @@
 @echo off
 chcp 65001 >nul
+echo.
 echo ========================================
-echo    WebEye 食物偵測系統 - 啟動腳本
+echo   FDA 營養資料庫抓取與分析系統
+echo   台灣食品藥物管理署營養資料庫整合
 echo ========================================
 echo.
 
@@ -9,96 +11,91 @@ echo.
 python --version >nul 2>&1
 if errorlevel 1 (
     echo ❌ 錯誤: 未找到 Python，請先安裝 Python 3.8+
+    echo 下載地址: https://www.python.org/downloads/
     pause
     exit /b 1
 )
 
 echo ✅ Python 已安裝
-echo.
+python --version
 
 :: 檢查虛擬環境
-if not exist ".venv" (
-    echo 📦 創建虛擬環境...
-    python -m venv .venv
+if not exist "venv" (
+    echo.
+    echo 📦 建立虛擬環境...
+    python -m venv venv
     if errorlevel 1 (
-        echo ❌ 創建虛擬環境失敗
+        echo ❌ 建立虛擬環境失敗
         pause
         exit /b 1
     )
+    echo ✅ 虛擬環境建立完成
 )
 
 :: 啟動虛擬環境
+echo.
 echo 🔄 啟動虛擬環境...
-call .venv\Scripts\activate.bat
+call venv\Scripts\activate.bat
 
 :: 安裝依賴
-echo 📦 檢查並安裝依賴套件...
+echo.
+echo 📦 安裝 Python 依賴套件...
 pip install -r requirements.txt
 if errorlevel 1 (
-    echo ❌ 安裝依賴失敗
+    echo ❌ 依賴安裝失敗
     pause
     exit /b 1
 )
-
 echo ✅ 依賴安裝完成
-echo.
 
 :: 檢查環境變數檔案
 if not exist ".env" (
-    echo ⚠️ 警告: 未找到 .env 檔案
-    echo 📝 請複製 env.example 為 .env 並設定您的 Azure API 金鑰
     echo.
+    echo ⚠️  未找到 .env 檔案，正在建立...
     copy env.example .env
-    echo ✅ 已創建 .env 檔案，請編輯並填入您的 API 金鑰
+    echo ✅ .env 檔案已建立
     echo.
+    echo 📝 請編輯 .env 檔案，設定您的 Azure API 金鑰
+    echo.
+    notepad .env
 )
 
-:: 顯示選單
-:menu
-echo 請選擇要啟動的應用程式:
-echo.
-echo 1. 🖥️  桌面應用程式 (Tkinter)
-echo 2. 🌐  Web 應用程式 (Streamlit)
-echo 3. 🧪  運行測試
-echo 4. ❌  退出
-echo.
-set /p choice="請輸入選項 (1-4): "
+:: 建立必要目錄
+if not exist "output" mkdir output
+if not exist "logs" mkdir logs
+if not exist "test_data" mkdir test_data
 
-if "%choice%"=="1" goto desktop_app
-if "%choice%"=="2" goto web_app
-if "%choice%"=="3" goto run_tests
-if "%choice%"=="4" goto exit
-echo ❌ 無效選項，請重新選擇
-goto menu
+echo.
+echo ========================================
+echo   環境設定完成！
+echo ========================================
+echo.
+echo 🚀 可用的命令:
+echo.
+echo   1. 執行 FDA 資料抓取:
+echo      python run_fda_scraper.py
+echo.
+echo   2. 直接執行抓取器:
+echo      python fda_nutrition_scraper.py
+echo.
+echo   3. 測試增強版食物偵測:
+echo      python -c "from enhanced_food_detection import test_enhanced_food_detection; test_enhanced_food_detection()"
+echo.
+echo   4. 查看使用說明:
+echo      python run_fda_scraper.py --help
+echo.
 
-:desktop_app
-echo.
-echo 🖥️ 啟動桌面應用程式...
-python webeye_food_app.py
-goto end
+:: 詢問是否立即執行
+set /p choice="是否要立即執行 FDA 資料抓取？(y/N): "
+if /i "%choice%"=="y" (
+    echo.
+    echo 🚀 開始執行 FDA 資料抓取...
+    python run_fda_scraper.py
+) else (
+    echo.
+    echo 💡 您可以稍後手動執行上述命令
+)
 
-:web_app
-echo.
-echo 🌐 啟動 Web 應用程式...
-echo 📡 應用程式將在瀏覽器中開啟: http://localhost:8501
-echo.
-streamlit run streamlit_app.py
-goto end
-
-:run_tests
-echo.
-echo 🧪 運行系統測試...
-python test_webeye_camera.py
-echo.
-pause
-goto menu
-
-:exit
-echo.
-echo 👋 感謝使用 WebEye 食物偵測系統！
-goto end
-
-:end
 echo.
 echo 按任意鍵退出...
 pause >nul 
