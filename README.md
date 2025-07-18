@@ -1,207 +1,250 @@
-# 食物熱量提取器 - 簡化版本
+# USDA 食物熱量抓取器
 
-這是一個專門用於從台灣 FDA 食品營養資料庫提取食物名稱和熱量資訊的簡化工具。
+這個專案專門用於從美國農業部(USDA) FoodData Central網站抓取食物名稱和對應的熱量資訊。
 
-## 功能特色
+## 🌟 功能特色
 
-- 🍎 **專注熱量提取**：只提取食物名稱和熱量資訊
-- ⚡ **快速版本**：提供快速測試版本，限制頁數
-- 📊 **多種輸出格式**：CSV、JSON、Excel 格式
-- 🔍 **搜尋功能**：支援食物名稱搜尋
-- 📈 **統計分析**：熱量分布統計
-- 🧪 **完整測試**：包含單元測試和整合測試
+- **多種抓取模式**: 完整抓取器、簡化抓取器、快速測試版本
+- **智能分類**: 自動將食物分類為水果、蔬菜、穀物、蛋白質等
+- **資料格式**: 支援CSV和JSON格式輸出
+- **互動式查詢**: 提供快速查詢工具
+- **樣本資料**: 包含50種常見食物的熱量資料
 
-## 檔案說明
+## 📁 檔案結構
 
-### 主要程式檔案
+```
+黑客松-子賽事4/
+├── usda_food_scraper.py          # 完整USDA抓取器
+├── simple_usda_calories.py       # 簡化熱量提取器
+├── quick_usda_test.py           # 快速測試版本
+├── usda_calorie_lookup.py       # 熱量查詢工具
+├── sample_usda_foods.json       # 樣本食物資料
+├── requirements.txt             # Python依賴套件
+└── README.md                   # 說明文件
+```
 
-- `simple_food_calories.py` - 完整版本的食物熱量提取器
-- `quick_calories.py` - 快速版本（限制頁數，適合測試）
-- `simple_calories_test.py` - 測試檔案
+## 🚀 快速開始
 
-### 配置檔案
-
-- `requirements.txt` - Python 依賴套件
-- `env.example` - 環境變數範例
-- `start.bat` / `start.sh` - 啟動腳本
-
-## 快速開始
-
-### 1. 環境設定
+### 1. 安裝依賴
 
 ```bash
-# 複製環境變數檔案
-copy env.example .env
-
-# 安裝依賴套件
 pip install -r requirements.txt
 ```
 
-### 2. 執行快速版本
+### 2. 快速測試
 
 ```bash
-# Windows
-python quick_calories.py
-
-# Linux/Mac
-python3 quick_calories.py
+python quick_usda_test.py
 ```
 
-### 3. 執行完整版本
+### 3. 使用查詢工具
 
 ```bash
-# Windows
-python simple_food_calories.py
-
-# Linux/Mac
-python3 simple_food_calories.py
+python usda_calorie_lookup.py
 ```
 
-### 4. 執行測試
+### 4. 完整抓取
 
 ```bash
-# 執行所有測試
-python -m pytest simple_calories_test.py -v
-
-# 執行特定測試
-python simple_calories_test.py
+python usda_food_scraper.py
 ```
 
-## 使用方式
+### 5. 簡化抓取
 
-### 快速版本 (quick_calories.py)
-
-適合測試和快速驗證：
-
-```python
-from quick_calories import QuickCalorieExtractor
-
-# 創建提取器
-extractor = QuickCalorieExtractor()
-
-# 提取前5頁資料
-data = extractor.extract_calories(limit_pages=5)
-
-# 搜尋特定食物
-results = extractor.search_food("蘋果")
-print(f"蘋果熱量: {results['calories']} kcal")
+```bash
+python simple_usda_calories.py
 ```
 
-### 完整版本 (simple_food_calories.py)
+## 📖 使用說明
 
-功能完整的提取器：
+### 快速測試版本 (`quick_usda_test.py`)
 
-```python
-from simple_food_calories import SimpleCalorieExtractor
+用於測試USDA API連接和基本功能：
 
-# 創建提取器
-extractor = SimpleCalorieExtractor()
-
-# 提取所有資料
-data = extractor.extract_all_calories()
-
-# 儲存為不同格式
-extractor.save_to_csv("food_calories.csv")
-extractor.save_to_json("food_calories.json")
-extractor.save_to_excel("food_calories.xlsx")
-
-# 搜尋和統計
-stats = extractor.get_calorie_statistics()
-print(f"平均熱量: {stats['average_calories']} kcal")
+```bash
+python quick_usda_test.py
 ```
 
-## 輸出格式
+**功能**:
+- 測試API連接
+- 測試6種常見食物
+- 顯示測試結果和統計
 
-### CSV 格式
-```csv
-食物名稱,熱量(kcal),分類
-蘋果,52,水果類
-白米飯,116,穀類
-雞胸肉,165,肉類
+### 熱量查詢工具 (`usda_calorie_lookup.py`)
+
+提供互動式查詢介面：
+
+```bash
+python usda_calorie_lookup.py
 ```
 
-### JSON 格式
+**使用方式**:
+- 直接輸入食物名稱搜尋
+- 輸入 `category:分類名` 搜尋特定分類
+- 輸入 `categories` 查看所有分類
+- 輸入 `stats` 查看統計資訊
+- 輸入 `help` 顯示幫助
+- 輸入 `quit` 退出
+
+**可用分類**:
+- fruits (水果)
+- vegetables (蔬菜)
+- grains (穀物)
+- proteins (蛋白質)
+- dairy (乳製品)
+- nuts (堅果)
+- beverages (飲料)
+- snacks (零食)
+- desserts (甜點)
+- condiments (調味料)
+
+### 簡化熱量提取器 (`simple_usda_calories.py`)
+
+專門提取食物名稱和熱量：
+
+```bash
+python simple_usda_calories.py
+```
+
+**功能**:
+- 提取100+種常見食物的熱量
+- 自動分類
+- 去重處理
+- 支援互動式搜尋
+- 輸出CSV和JSON格式
+
+### 完整抓取器 (`usda_food_scraper.py`)
+
+功能最完整的版本：
+
+```bash
+python usda_food_scraper.py
+```
+
+**功能**:
+- 抓取所有分類的食物
+- 詳細營養資訊
+- 品牌資訊
+- 成分列表
+- 份量資訊
+
+## 📊 資料格式
+
+### JSON格式
+
 ```json
 {
+  "metadata": {
+    "source": "USDA FoodData Central",
+    "url": "https://fdc.nal.usda.gov/",
+    "extracted_at": "2024-12-19T10:00:00",
+    "total_foods": 50
+  },
   "foods": [
     {
-      "name": "蘋果",
-      "calories": 52,
-      "category": "水果類"
+      "food_name": "Apple, raw, with skin",
+      "energy_kcal": 52.0,
+      "category": "fruits",
+      "fdc_id": "171688"
     }
-  ],
-  "statistics": {
-    "total_foods": 1000,
-    "average_calories": 120.5
-  }
+  ]
 }
 ```
 
-## 功能特色
+### CSV格式
 
-### 🔍 搜尋功能
-- 精確搜尋：完全匹配食物名稱
-- 模糊搜尋：部分匹配食物名稱
-- 分類搜尋：按食物分類搜尋
+| food_name | energy_kcal | category | fdc_id |
+|-----------|-------------|----------|--------|
+| Apple, raw, with skin | 52.0 | fruits | 171688 |
+| Banana, raw | 89.0 | fruits | 173944 |
 
-### 📊 統計分析
-- 熱量分布統計
-- 分類統計
-- 熱量範圍分析
+## 🔧 技術細節
 
-### 💾 資料管理
-- 自動去重
-- 資料驗證
-- 錯誤處理
+### API使用
 
-## 測試
+- **基礎URL**: `https://api.nal.usda.gov/fdc/v1`
+- **API金鑰**: 使用 `DEMO_KEY` (免費演示版本)
+- **請求限制**: 每分鐘1000次請求
+- **資料類型**: Foundation Foods, SR Legacy Foods
 
-### 執行測試
-```bash
-# 執行所有測試
-python simple_calories_test.py
+### 營養素ID
 
-# 使用 pytest
-python -m pytest simple_calories_test.py -v
+- **208**: 能量 (kcal)
+- **203**: 蛋白質 (g)
+- **204**: 總脂肪 (g)
+- **205**: 碳水化合物 (g)
+
+### 錯誤處理
+
+- 網路連接錯誤
+- API回應錯誤
+- 資料解析錯誤
+- 檔案讀寫錯誤
+
+## 📈 統計資訊
+
+樣本資料包含：
+- **總食物數量**: 50個
+- **分類數量**: 10個
+- **平均熱量**: 約200 kcal
+- **熱量範圍**: 0-884 kcal
+
+## 🛠️ 自訂設定
+
+### 修改搜尋關鍵字
+
+在 `simple_usda_calories.py` 中修改 `food_keywords` 列表：
+
+```python
+self.food_keywords = [
+    'apple', 'banana', 'chicken',  # 添加或修改關鍵字
+    # ... 更多關鍵字
+]
 ```
 
-### 測試覆蓋範圍
-- 資料提取測試
-- 搜尋功能測試
-- 檔案輸出測試
-- 錯誤處理測試
+### 修改分類對應
 
-## 注意事項
+在 `simple_usda_calories.py` 中修改 `category_mapping` 字典：
 
-1. **網路連線**：需要穩定的網路連線來訪問 FDA 網站
-2. **請求頻率**：預設延遲 1 秒，避免對伺服器造成負擔
-3. **資料更新**：FDA 網站資料可能定期更新
-4. **使用限制**：請遵守網站的使用條款
+```python
+self.category_mapping = {
+    'apple': 'fruits',
+    'chicken': 'proteins',
+    # ... 更多對應
+}
+```
 
-## 疑難排解
+### 調整請求參數
 
-### 常見問題
+```python
+self.request_delay = 1.0  # 請求間隔 (秒)
+self.timeout = 30         # 請求超時 (秒)
+```
 
-**Q: 網路連線錯誤**
-A: 檢查網路連線，確認可以訪問 FDA 網站
+## ⚠️ 注意事項
 
-**Q: 資料提取失敗**
-A: 檢查環境變數設定，確認 URL 正確
+1. **API限制**: 使用演示API金鑰有請求次數限制
+2. **網路連接**: 需要穩定的網路連接
+3. **資料準確性**: 資料來源於USDA官方資料庫
+4. **使用規範**: 請遵守USDA的使用條款
 
-**Q: 記憶體不足**
-A: 使用快速版本或增加記憶體限制
+## 🔗 相關連結
 
-### 錯誤代碼
+- [USDA FoodData Central](https://fdc.nal.usda.gov/)
+- [USDA API文檔](https://fdc.nal.usda.gov/api-guide.html)
+- [營養素資料庫](https://fdc.nal.usda.gov/fdc-app.html#/food-details/171688/nutrients)
 
-- `ConnectionError`: 網路連線問題
-- `TimeoutError`: 請求超時
-- `ValueError`: 資料格式錯誤
-- `FileNotFoundError`: 檔案路徑錯誤
+## 📝 更新日誌
 
-## 授權
+- **2024-12-19**: 初始版本發布
+- 支援基本食物熱量抓取
+- 提供多種使用模式
+- 包含樣本資料和查詢工具
 
-本專案僅供學習和研究使用，請遵守相關網站的使用條款。
+## 🤝 貢獻
 
-## 聯絡資訊
+歡迎提交問題報告和功能建議！
 
-如有問題或建議，請聯繫開發團隊。 
+## 📄 授權
+
+本專案僅供學習和研究使用。資料來源於USDA FoodData Central，請遵守相關使用條款。 

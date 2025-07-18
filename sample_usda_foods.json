@@ -1,0 +1,341 @@
+{
+  "metadata": {
+    "source": "USDA FoodData Central",
+    "url": "https://fdc.nal.usda.gov/",
+    "description": "常見食物熱量資料樣本",
+    "created_at": "2024-12-19T10:00:00",
+    "total_foods": 50
+  },
+  "foods": [
+    {
+      "food_name": "Apple, raw, with skin",
+      "energy_kcal": 52.0,
+      "category": "fruits",
+      "fdc_id": "171688"
+    },
+    {
+      "food_name": "Banana, raw",
+      "energy_kcal": 89.0,
+      "category": "fruits",
+      "fdc_id": "173944"
+    },
+    {
+      "food_name": "Orange, raw, all commercial varieties",
+      "energy_kcal": 47.0,
+      "category": "fruits",
+      "fdc_id": "169097"
+    },
+    {
+      "food_name": "Grapes, red or green (European type, such as Thompson seedless), raw",
+      "energy_kcal": 62.0,
+      "category": "fruits",
+      "fdc_id": "174683"
+    },
+    {
+      "food_name": "Strawberries, raw",
+      "energy_kcal": 32.0,
+      "category": "fruits",
+      "fdc_id": "167762"
+    },
+    {
+      "food_name": "Carrots, raw",
+      "energy_kcal": 41.0,
+      "category": "vegetables",
+      "fdc_id": "170393"
+    },
+    {
+      "food_name": "Broccoli, raw",
+      "energy_kcal": 34.0,
+      "category": "vegetables",
+      "fdc_id": "170379"
+    },
+    {
+      "food_name": "Tomatoes, red, ripe, raw, year round average",
+      "energy_kcal": 18.0,
+      "category": "vegetables",
+      "fdc_id": "170457"
+    },
+    {
+      "food_name": "Lettuce, cos or romaine, raw",
+      "energy_kcal": 17.0,
+      "category": "vegetables",
+      "fdc_id": "169247"
+    },
+    {
+      "food_name": "Spinach, raw",
+      "energy_kcal": 23.0,
+      "category": "vegetables",
+      "fdc_id": "168463"
+    },
+    {
+      "food_name": "Onions, raw",
+      "energy_kcal": 40.0,
+      "category": "vegetables",
+      "fdc_id": "170000"
+    },
+    {
+      "food_name": "Potatoes, raw, skin",
+      "energy_kcal": 77.0,
+      "category": "vegetables",
+      "fdc_id": "170438"
+    },
+    {
+      "food_name": "Corn, sweet, yellow, raw",
+      "energy_kcal": 86.0,
+      "category": "vegetables",
+      "fdc_id": "169998"
+    },
+    {
+      "food_name": "Rice, white, long-grain, regular, raw, enriched",
+      "energy_kcal": 365.0,
+      "category": "grains",
+      "fdc_id": "169702"
+    },
+    {
+      "food_name": "Bread, white, commercially prepared (includes soft bread crumbs)",
+      "energy_kcal": 266.0,
+      "category": "grains",
+      "fdc_id": "172684"
+    },
+    {
+      "food_name": "Pasta, cooked, enriched, with added salt",
+      "energy_kcal": 131.0,
+      "category": "grains",
+      "fdc_id": "168491"
+    },
+    {
+      "food_name": "Oats (Includes foods for USDA's Food Distribution Program)",
+      "energy_kcal": 389.0,
+      "category": "grains",
+      "fdc_id": "169705"
+    },
+    {
+      "food_name": "Chicken, broilers or fryers, breast, meat only, raw",
+      "energy_kcal": 165.0,
+      "category": "proteins",
+      "fdc_id": "171477"
+    },
+    {
+      "food_name": "Beef, ground, 80% lean meat / 20% fat, raw",
+      "energy_kcal": 254.0,
+      "category": "proteins",
+      "fdc_id": "171890"
+    },
+    {
+      "food_name": "Pork, fresh, loin, tenderloin, separable lean only, raw",
+      "energy_kcal": 143.0,
+      "category": "proteins",
+      "fdc_id": "168300"
+    },
+    {
+      "food_name": "Fish, salmon, Atlantic, farmed, raw",
+      "energy_kcal": 208.0,
+      "category": "proteins",
+      "fdc_id": "173686"
+    },
+    {
+      "food_name": "Egg, whole, raw, fresh",
+      "energy_kcal": 143.0,
+      "category": "proteins",
+      "fdc_id": "173424"
+    },
+    {
+      "food_name": "Milk, whole, 3.25% milkfat, with added vitamin D",
+      "energy_kcal": 61.0,
+      "category": "dairy",
+      "fdc_id": "171265"
+    },
+    {
+      "food_name": "Cheese, cheddar",
+      "energy_kcal": 403.0,
+      "category": "dairy",
+      "fdc_id": "173410"
+    },
+    {
+      "food_name": "Yogurt, Greek, plain, nonfat",
+      "energy_kcal": 59.0,
+      "category": "dairy",
+      "fdc_id": "170903"
+    },
+    {
+      "food_name": "Butter, without salt",
+      "energy_kcal": 717.0,
+      "category": "dairy",
+      "fdc_id": "173430"
+    },
+    {
+      "food_name": "Almonds, raw",
+      "energy_kcal": 579.0,
+      "category": "nuts",
+      "fdc_id": "170567"
+    },
+    {
+      "food_name": "Peanuts, raw",
+      "energy_kcal": 567.0,
+      "category": "nuts",
+      "fdc_id": "172421"
+    },
+    {
+      "food_name": "Walnuts, english",
+      "energy_kcal": 654.0,
+      "category": "nuts",
+      "fdc_id": "170187"
+    },
+    {
+      "food_name": "Coffee, brewed from grounds, prepared with tap water",
+      "energy_kcal": 1.0,
+      "category": "beverages",
+      "fdc_id": "171890"
+    },
+    {
+      "food_name": "Tea, brewed, prepared with tap water",
+      "energy_kcal": 1.0,
+      "category": "beverages",
+      "fdc_id": "171917"
+    },
+    {
+      "food_name": "Orange juice, raw (Includes foods for USDA's Food Distribution Program)",
+      "energy_kcal": 45.0,
+      "category": "beverages",
+      "fdc_id": "169098"
+    },
+    {
+      "food_name": "Potato chips, plain, salted",
+      "energy_kcal": 536.0,
+      "category": "snacks",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Popcorn, air-popped",
+      "energy_kcal": 375.0,
+      "category": "snacks",
+      "fdc_id": "170288"
+    },
+    {
+      "food_name": "Chocolate, dark, 70-85% cacao solids",
+      "energy_kcal": 598.0,
+      "category": "snacks",
+      "fdc_id": "170273"
+    },
+    {
+      "food_name": "Cookies, chocolate chip, commercially prepared, regular, higher fat, enriched",
+      "energy_kcal": 502.0,
+      "category": "desserts",
+      "fdc_id": "168484"
+    },
+    {
+      "food_name": "Cake, chocolate, commercially prepared with chocolate frosting, in-store bakery",
+      "energy_kcal": 371.0,
+      "category": "desserts",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Ice cream, vanilla",
+      "energy_kcal": 207.0,
+      "category": "desserts",
+      "fdc_id": "168635"
+    },
+    {
+      "food_name": "Pie, apple, commercially prepared, unenriched flour",
+      "energy_kcal": 237.0,
+      "category": "desserts",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Mayonnaise, regular (mayo)",
+      "energy_kcal": 680.0,
+      "category": "condiments",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Ketchup, tomato",
+      "energy_kcal": 102.0,
+      "category": "condiments",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Mustard, prepared, yellow",
+      "energy_kcal": 66.0,
+      "category": "condiments",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Soy sauce made from soy (tamari)",
+      "energy_kcal": 60.0,
+      "category": "condiments",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Olive oil, salad or cooking",
+      "energy_kcal": 884.0,
+      "category": "condiments",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Honey",
+      "energy_kcal": 304.0,
+      "category": "condiments",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Sugar, granulated",
+      "energy_kcal": 387.0,
+      "category": "condiments",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Salt, table",
+      "energy_kcal": 0.0,
+      "category": "condiments",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Black pepper",
+      "energy_kcal": 251.0,
+      "category": "condiments",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Garlic, raw",
+      "energy_kcal": 149.0,
+      "category": "vegetables",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Ginger root, raw",
+      "energy_kcal": 80.0,
+      "category": "vegetables",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Lemon, raw, without peel",
+      "energy_kcal": 29.0,
+      "category": "fruits",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Lime, raw",
+      "energy_kcal": 30.0,
+      "category": "fruits",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Cucumber, with peel, raw",
+      "energy_kcal": 16.0,
+      "category": "vegetables",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Bell peppers, sweet, red, raw",
+      "energy_kcal": 31.0,
+      "category": "vegetables",
+      "fdc_id": "168604"
+    },
+    {
+      "food_name": "Mushrooms, white, raw",
+      "energy_kcal": 22.0,
+      "category": "vegetables",
+      "fdc_id": "168604"
+    }
+  ]
+} 

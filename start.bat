@@ -1,70 +1,53 @@
 @echo off
 chcp 65001 >nul
-echo ========================================
-echo    食物熱量提取器 - 簡化版本
-echo ========================================
+echo 🍽️ USDA 食物熱量抓取器
+echo ================================
 echo.
-
-:: 檢查 Python 是否安裝
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo 錯誤：未找到 Python，請先安裝 Python 3.7+
-    pause
-    exit /b 1
-)
-
-:: 檢查虛擬環境
-if not exist "venv" (
-    echo 創建虛擬環境...
-    python -m venv venv
-)
-
-:: 啟動虛擬環境
-echo 啟動虛擬環境...
-call venv\Scripts\activate.bat
-
-:: 安裝依賴套件
-echo 安裝依賴套件...
-pip install -r requirements.txt
-
-:: 檢查環境變數檔案
-if not exist ".env" (
-    echo 複製環境變數檔案...
-    copy env.example .env
-    echo 請編輯 .env 檔案設定環境變數
-)
-
+echo 請選擇要執行的程式：
 echo.
-echo ========================================
-echo    選擇執行模式
-echo ========================================
-echo 1. 快速版本 (測試用，限制頁數)
-echo 2. 完整版本 (提取所有資料)
-echo 3. 執行測試
-echo 4. 互動式搜尋
-echo 5. 退出
+echo 1. 快速測試 (測試API連接)
+echo 2. 熱量查詢工具 (互動式查詢)
+echo 3. 簡化熱量提取器 (抓取熱量資料)
+echo 4. 完整抓取器 (完整功能)
+echo 5. 安裝依賴套件
+echo 6. 退出
 echo.
-
-set /p choice="請選擇 (1-5): "
+set /p choice=請輸入選項 (1-6): 
 
 if "%choice%"=="1" (
-    echo 執行快速版本...
-    python quick_calories.py
+    echo.
+    echo 🚀 執行快速測試...
+    python quick_usda_test.py
+    pause
 ) else if "%choice%"=="2" (
-    echo 執行完整版本...
-    python simple_food_calories.py
+    echo.
+    echo 🔍 啟動熱量查詢工具...
+    python usda_calorie_lookup.py
+    pause
 ) else if "%choice%"=="3" (
-    echo 執行測試...
-    python simple_calories_test.py
+    echo.
+    echo 📊 執行簡化熱量提取器...
+    python simple_usda_calories.py
+    pause
 ) else if "%choice%"=="4" (
-    echo 啟動互動式搜尋...
-    python -c "from simple_food_calories import SimpleCalorieExtractor; extractor = SimpleCalorieExtractor(); extractor.interactive_search()"
+    echo.
+    echo 🌟 執行完整抓取器...
+    python usda_food_scraper.py
+    pause
 ) else if "%choice%"=="5" (
-    echo 退出程式
+    echo.
+    echo 📦 安裝依賴套件...
+    pip install -r requirements.txt
+    echo.
+    echo ✅ 安裝完成！
+    pause
+) else if "%choice%"=="6" (
+    echo.
+    echo 👋 再見！
     exit /b 0
 ) else (
-    echo 無效選擇
-)
-
-echo.
-pause 
+    echo.
+    echo ❌ 無效的選項，請重新選擇
+    pause
+    goto :eof
+) 
