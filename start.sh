@@ -1,119 +1,75 @@
 #!/bin/bash
 
-# FDA 營養資料庫抓取與分析系統
-# 台灣食品藥物管理署營養資料庫整合
-
-echo ""
 echo "========================================"
-echo "  FDA 營養資料庫抓取與分析系統"
-echo "  台灣食品藥物管理署營養資料庫整合"
+echo "   食物熱量提取器 - 簡化版本"
 echo "========================================"
-echo ""
+echo
 
 # 檢查 Python 是否安裝
 if ! command -v python3 &> /dev/null; then
-    echo "❌ 錯誤: 未找到 Python3，請先安裝 Python 3.8+"
-    echo "Ubuntu/Debian: sudo apt install python3 python3-pip python3-venv"
-    echo "CentOS/RHEL: sudo yum install python3 python3-pip"
-    echo "macOS: brew install python3"
+    echo "錯誤：未找到 Python3，請先安裝 Python 3.7+"
     exit 1
 fi
-
-echo "✅ Python 已安裝"
-python3 --version
 
 # 檢查虛擬環境
 if [ ! -d "venv" ]; then
-    echo ""
-    echo "📦 建立虛擬環境..."
+    echo "創建虛擬環境..."
     python3 -m venv venv
-    if [ $? -ne 0 ]; then
-        echo "❌ 建立虛擬環境失敗"
-        exit 1
-    fi
-    echo "✅ 虛擬環境建立完成"
 fi
 
 # 啟動虛擬環境
-echo ""
-echo "🔄 啟動虛擬環境..."
+echo "啟動虛擬環境..."
 source venv/bin/activate
 
-# 升級 pip
-echo ""
-echo "📦 升級 pip..."
-pip install --upgrade pip
-
-# 安裝依賴
-echo ""
-echo "📦 安裝 Python 依賴套件..."
+# 安裝依賴套件
+echo "安裝依賴套件..."
 pip install -r requirements.txt
-if [ $? -ne 0 ]; then
-    echo "❌ 依賴安裝失敗"
-    exit 1
-fi
-echo "✅ 依賴安裝完成"
 
 # 檢查環境變數檔案
 if [ ! -f ".env" ]; then
-    echo ""
-    echo "⚠️  未找到 .env 檔案，正在建立..."
+    echo "複製環境變數檔案..."
     cp env.example .env
-    echo "✅ .env 檔案已建立"
-    echo ""
-    echo "📝 請編輯 .env 檔案，設定您的 Azure API 金鑰"
-    echo ""
-    
-    # 檢查是否有可用的編輯器
-    if command -v nano &> /dev/null; then
-        nano .env
-    elif command -v vim &> /dev/null; then
-        vim .env
-    elif command -v vi &> /dev/null; then
-        vi .env
-    else
-        echo "請使用您喜歡的編輯器編輯 .env 檔案"
-    fi
+    echo "請編輯 .env 檔案設定環境變數"
 fi
 
-# 建立必要目錄
-mkdir -p output logs test_data
-
-# 設定執行權限
-chmod +x run_fda_scraper.py
-chmod +x fda_nutrition_scraper.py
-
-echo ""
+echo
 echo "========================================"
-echo "   環境設定完成！"
+echo "   選擇執行模式"
 echo "========================================"
-echo ""
-echo "🚀 可用的命令:"
-echo ""
-echo "  1. 執行 FDA 資料抓取:"
-echo "     python run_fda_scraper.py"
-echo ""
-echo "  2. 直接執行抓取器:"
-echo "     python fda_nutrition_scraper.py"
-echo ""
-echo "  3. 測試增強版食物偵測:"
-echo "     python -c \"from enhanced_food_detection import test_enhanced_food_detection; test_enhanced_food_detection()\""
-echo ""
-echo "  4. 查看使用說明:"
-echo "     python run_fda_scraper.py --help"
-echo ""
+echo "1. 快速版本 (測試用，限制頁數)"
+echo "2. 完整版本 (提取所有資料)"
+echo "3. 執行測試"
+echo "4. 互動式搜尋"
+echo "5. 退出"
+echo
 
-# 詢問是否立即執行
-read -p "是否要立即執行 FDA 資料抓取？(y/N): " choice
-if [[ $choice =~ ^[Yy]$ ]]; then
-    echo ""
-    echo "🚀 開始執行 FDA 資料抓取..."
-    python run_fda_scraper.py
-else
-    echo ""
-    echo "💡 您可以稍後手動執行上述命令"
-fi
+read -p "請選擇 (1-5): " choice
 
-echo ""
-echo "按 Enter 鍵退出..."
-read 
+case $choice in
+    1)
+        echo "執行快速版本..."
+        python3 quick_calories.py
+        ;;
+    2)
+        echo "執行完整版本..."
+        python3 simple_food_calories.py
+        ;;
+    3)
+        echo "執行測試..."
+        python3 simple_calories_test.py
+        ;;
+    4)
+        echo "啟動互動式搜尋..."
+        python3 -c "from simple_food_calories import SimpleCalorieExtractor; extractor = SimpleCalorieExtractor(); extractor.interactive_search()"
+        ;;
+    5)
+        echo "退出程式"
+        exit 0
+        ;;
+    *)
+        echo "無效選擇"
+        ;;
+esac
+
+echo
+read -p "按 Enter 鍵繼續..." 

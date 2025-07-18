@@ -1,101 +1,70 @@
 @echo off
 chcp 65001 >nul
-echo.
 echo ========================================
-echo   FDA 營養資料庫抓取與分析系統
-echo   台灣食品藥物管理署營養資料庫整合
+echo    食物熱量提取器 - 簡化版本
 echo ========================================
 echo.
 
 :: 檢查 Python 是否安裝
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo ❌ 錯誤: 未找到 Python，請先安裝 Python 3.8+
-    echo 下載地址: https://www.python.org/downloads/
+    echo 錯誤：未找到 Python，請先安裝 Python 3.7+
     pause
     exit /b 1
 )
-
-echo ✅ Python 已安裝
-python --version
 
 :: 檢查虛擬環境
 if not exist "venv" (
-    echo.
-    echo 📦 建立虛擬環境...
+    echo 創建虛擬環境...
     python -m venv venv
-    if errorlevel 1 (
-        echo ❌ 建立虛擬環境失敗
-        pause
-        exit /b 1
-    )
-    echo ✅ 虛擬環境建立完成
 )
 
 :: 啟動虛擬環境
-echo.
-echo 🔄 啟動虛擬環境...
+echo 啟動虛擬環境...
 call venv\Scripts\activate.bat
 
-:: 安裝依賴
-echo.
-echo 📦 安裝 Python 依賴套件...
+:: 安裝依賴套件
+echo 安裝依賴套件...
 pip install -r requirements.txt
-if errorlevel 1 (
-    echo ❌ 依賴安裝失敗
-    pause
-    exit /b 1
-)
-echo ✅ 依賴安裝完成
 
 :: 檢查環境變數檔案
 if not exist ".env" (
-    echo.
-    echo ⚠️  未找到 .env 檔案，正在建立...
+    echo 複製環境變數檔案...
     copy env.example .env
-    echo ✅ .env 檔案已建立
-    echo.
-    echo 📝 請編輯 .env 檔案，設定您的 Azure API 金鑰
-    echo.
-    notepad .env
+    echo 請編輯 .env 檔案設定環境變數
 )
 
-:: 建立必要目錄
-if not exist "output" mkdir output
-if not exist "logs" mkdir logs
-if not exist "test_data" mkdir test_data
-
 echo.
 echo ========================================
-echo   環境設定完成！
+echo    選擇執行模式
 echo ========================================
-echo.
-echo 🚀 可用的命令:
-echo.
-echo   1. 執行 FDA 資料抓取:
-echo      python run_fda_scraper.py
-echo.
-echo   2. 直接執行抓取器:
-echo      python fda_nutrition_scraper.py
-echo.
-echo   3. 測試增強版食物偵測:
-echo      python -c "from enhanced_food_detection import test_enhanced_food_detection; test_enhanced_food_detection()"
-echo.
-echo   4. 查看使用說明:
-echo      python run_fda_scraper.py --help
+echo 1. 快速版本 (測試用，限制頁數)
+echo 2. 完整版本 (提取所有資料)
+echo 3. 執行測試
+echo 4. 互動式搜尋
+echo 5. 退出
 echo.
 
-:: 詢問是否立即執行
-set /p choice="是否要立即執行 FDA 資料抓取？(y/N): "
-if /i "%choice%"=="y" (
-    echo.
-    echo 🚀 開始執行 FDA 資料抓取...
-    python run_fda_scraper.py
+set /p choice="請選擇 (1-5): "
+
+if "%choice%"=="1" (
+    echo 執行快速版本...
+    python quick_calories.py
+) else if "%choice%"=="2" (
+    echo 執行完整版本...
+    python simple_food_calories.py
+) else if "%choice%"=="3" (
+    echo 執行測試...
+    python simple_calories_test.py
+) else if "%choice%"=="4" (
+    echo 啟動互動式搜尋...
+    python -c "from simple_food_calories import SimpleCalorieExtractor; extractor = SimpleCalorieExtractor(); extractor.interactive_search()"
+) else if "%choice%"=="5" (
+    echo 退出程式
+    exit /b 0
 ) else (
-    echo.
-    echo 💡 您可以稍後手動執行上述命令
+    echo 無效選擇
 )
 
 echo.
-echo 按任意鍵退出...
-pause >nul 
+pause 
