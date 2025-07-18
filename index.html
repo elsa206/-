@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Azure OpenAI Chat</title>
+  <style>
+    /* ChatGPT 風格佈局 */
+    body { display: flex; flex-direction: column; height: 80vh; width: 50vw; margin: auto; font-family: Arial, sans-serif; }
+    #chat { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 16px; background-color: #f9f9f9; }
+    .message { max-width: 70%; padding: 10px 14px; border-radius: 12px; line-height: 1.4; word-wrap: break-word; white-space: pre-wrap; overflow-wrap: break-word; }
+    .message.user { align-self: flex-end; background-color: #DCF8C6; }
+    .message.ai { align-self: flex-start; background-color: #FFFFFF; border: 1px solid #e0e0e0; }
+    .message.system { align-self: center; font-size: 0.85em; color: #888; }
+    .input-container { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #ccc; }
+    #prompt { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; }
+    #sendBtn { background-color: #0063b1; color: white; border: none; padding: 10px 16px; border-radius: 20px; cursor: pointer; }
+    #sendBtn:disabled, #prompt:disabled { background-color: #eee; cursor: not-allowed; }
+
+    /* 顯示說明文檔的按鈕樣式 */
+    .show-api-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #0063b1;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      z-index: 1001;
+    }
+    /* Modal 樣式 */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 40px;
+      border-radius: 8px;
+      width: 80%;
+      height: 80%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    /* Close 按鈕絕對定位 */
+    .close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    /* Modal 標題 */
+    .modal-content h2 {
+      margin: 0 0 10px;
+      font-size: 1.2rem;
+      color: #34495e;
+      border-bottom: 2px solid #ecf0f1;
+      padding-bottom: 8px;
+    }
+    /* 說明內容區 */
+    #apiContent {
+      flex: 1;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #bdc3c7;
+      border-radius: 4px;
+      resize: none;
+      font-family: monospace;
+      font-size: 0.9rem;
+      overflow: auto;
+      margin-bottom: 10px;
+    }
+    /* 複製按鈕樣式 */
+    #copyApiContent {
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      align-self: flex-start;
+    }
+    #copyApiContent:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <!-- 添加說明文檔按鈕 -->
+  <button id="showApiDoc" class="show-api-btn">?</button>
+  
+  <h1>Azure OpenAI Chat</h1>
+  <div id="chat"></div>
+  <div class="input-container">
+    <input type="text" id="prompt" placeholder="輸入您的 prompt" value="介紹你自己"/>
+    <button id="sendBtn">送出</button>
+  </div>
+
+  <!-- 添加 Modal 對話框 -->
+  <div id="apiModal" class="modal">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <h2>API 使用說明</h2>
+      <textarea id="apiContent" readonly></textarea>
+      <button id="copyApiContent">複製</button>
+    </div>
+  </div>
+
+  <script>
+    const chatDiv = document.getElementById('chat');
+    const promptInput = document.getElementById('prompt');
+    const sendBtn = document.getElementById('sendBtn');
+
+    const ws = new WebSocket(`ws://${location.host}`);
+    ws.onopen = () => {
+      appendMessage('系統', 'WebSocket 已連線');
+    };
+    ws.onerror = (err) => {
+      appendMessage('系統', 'WebSocket 發生錯誤');
+      console.error(err);
+    };
+    ws.onclose = () => appendMessage('系統', 'WebSocket 已斷線');
+    ws.onmessage = (event) => {
+      let data;
+      try { data = JSON.parse(event.data); } catch { return; }
+      if (data.type === 'start') {
+        appendMessage('AI', '');
+        promptInput.disabled = true;
+        sendBtn.disabled = true;
+      } else if (data.type === 'chunk') {
+        updateLastMessage(data.delta);
+      } else if (data.type === 'end') {
+        promptInput.disabled = false;
+        sendBtn.disabled = false;
+        appendMessage('系統', '回應結束');
+      } else if (data.type === 'error') {
+        appendMessage('系統', `錯誤: ${data.message}`);
+      }
+    };
+
+    function appendMessage(sender, text) {
+      const msg = document.createElement('div');
+      msg.classList.add('message');
+      if (sender === '使用者') {
+        msg.classList.add('user');
+      } else if (sender === 'AI') {
+        msg.classList.add('ai');
+      } else {
+        msg.classList.add('system');
+      }
+      msg.textContent = text;
+      chatDiv.appendChild(msg);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+    }
+
+    function updateLastMessage(text) {
+      const msgs = chatDiv.querySelectorAll('div');
+      if (msgs.length === 0) return;
+      const lastMsg = msgs[msgs.length - 1];
+      lastMsg.textContent += text;
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+    }
+
+    sendBtn.addEventListener('click', () => {
+      const prompt = promptInput.value.trim();
+      if (!prompt) return;
+      appendMessage('使用者', prompt);
+      ws.send(JSON.stringify({ prompt }));
+      promptInput.value = '';
+    });
+    promptInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendBtn.click();
+    });
+
+    // 顯示 API 說明文檔
+    document.getElementById('showApiDoc').onclick = async () => {
+      const modal = document.getElementById('apiModal');
+      const textarea = document.getElementById('apiContent');
+      if (!textarea.value) {
+        try {
+          const res = await fetch('/azure_api.md');
+          textarea.value = res.ok ? await res.text() : '無法載入說明檔';
+        } catch {
+          textarea.value = '載入錯誤';
+        }
+      }
+      modal.style.display = 'flex';
+    };
+
+    // 關閉 Modal
+    document.getElementById('closeModal').onclick = () => {
+      document.getElementById('apiModal').style.display = 'none';
+    };
+
+    // 複製內容並關閉
+    document.getElementById('copyApiContent').onclick = () => {
+      const txt = document.getElementById('apiContent');
+      txt.select();
+      document.execCommand('copy');
+      alert('已複製到剪貼簿');
+      document.getElementById('apiModal').style.display = 'none';
+    };
+  </script>
+</body>
+</html>

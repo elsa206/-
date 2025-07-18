@@ -1,0 +1,3683 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧飲食助理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { text-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.1); }
+            to { text-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 0 30px rgba(255,255,255,0.3); }
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* AI助手小人物 */
+        .ai-assistant {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: bounce 2s infinite;
+            transition: transform 0.3s ease;
+        }
+
+        .ai-assistant:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        /* 助手对话气泡 */
+        .assistant-bubble {
+            position: fixed;
+            bottom: 110px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 20px 20px 5px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            max-width: 250px;
+            z-index: 999;
+            display: none;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .assistant-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            right: 25px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid white;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 300% 100%;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes warningPulse {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 健康提醒樣式 */
+        .health-alerts {
+            border-left: 5px solid #ff6b6b;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+        }
+
+        .health-alerts h3 {
+            color: #e74c3c;
+        }
+
+        .alert-item {
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .alert-item.danger {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .alert-item.warning {
+            background: linear-gradient(135deg, #fffbf0 0%, #fff4e0 100%);
+            border: 1px solid #ffe0b2;
+            color: #e65100;
+        }
+
+        .alert-icon {
+            font-size: 18px;
+            margin-top: 2px;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .alert-description {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e1e5e9;
+        }
+
+        .btn-secondary:hover {
+            background: #e1e5e9;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .nutrition-chart {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .nutrition-item {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .nutrition-item:hover {
+            transform: scale(1.05);
+        }
+
+        .nutrition-item::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+            100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        }
+
+        .nutrition-item .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .nutrition-item .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .food-log {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .food-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .food-item .info {
+            flex: 1;
+        }
+
+        .food-item .name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .food-item .details {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .food-item .calories {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .chat-container {
+            grid-column: span 3;
+            max-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            max-height: 300px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+        }
+
+        .message.ai {
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid #e1e5e9;
+        }
+
+        /* AI消息中的表格样式 */
+        .message.ai table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .message.ai table th {
+            background: #667eea;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .message.ai table td {
+            padding: 6px 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        .message.ai table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .message.ai h3 {
+            margin: 15px 0 8px 0;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .message.ai ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .message.ai li {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+
+        .message.ai p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .message.ai strong {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .message.ai h1, .message.ai h2, .message.ai h3 {
+            margin: 15px 0 10px 0;
+            color: #667eea;
+        }
+
+        .message.ai h1 {
+            font-size: 1.3rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .message.ai h2 {
+            font-size: 1.2rem;
+        }
+
+        .message.ai h3 {
+            font-size: 1.1rem;
+        }
+
+        /* 新增的智能格式化样式 */
+        .meal-section {
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        .meal-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .meal-content {
+            padding: 16px;
+            line-height: 1.6;
+        }
+
+        .day-title {
+            background: linear-gradient(135deg, #48cae4 0%, #0077b6 100%);
+            color: white;
+            padding: 10px 16px;
+            margin: 15px 0 10px 0;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .highlight-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 0 2px;
+        }
+
+        .nutrition-value {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 0 1px;
+        }
+
+        .emoji-highlight {
+            font-size: 18px;
+            margin: 0 4px;
+            display: inline-block;
+        }
+
+        .food-separator {
+            color: #667eea;
+            font-weight: 600;
+            margin: 0 4px;
+        }
+
+        .advice-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 15px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        .advice-item {
+            margin: 8px 0;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .auto-paragraph {
+            margin: 12px 0;
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        /* 一週食譜規劃樣式 */
+        .menu-settings-panel {
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            border: 2px solid #667eea;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .settings-grid .span-full {
+            grid-column: 1 / -1;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .weekly-menu-section {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            border-radius: 20px;
+            margin: 30px 0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .section-header h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .section-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .weekly-menu-container {
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .menu-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-top: 15px;
+        }
+
+        .menu-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .menu-table th {
+            padding: 15px 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-right: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .menu-table th:first-child {
+            border-right: 3px solid rgba(255,255,255,0.8);
+        }
+        
+        .menu-table th:last-child {
+            border-right: none;
+        }
+
+        .menu-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+            border-right: 2px solid #e1e5e9;
+            vertical-align: top;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        /* 增強三餐分隔線 */
+        .menu-table td:not(.day-column) {
+            border-left: 2px solid #d1d5db;
+        }
+        
+        .menu-table td:last-child {
+            border-right: none;
+        }
+
+        .menu-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        /* 餐次內容hover效果 */
+        .meal-content:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(102, 126, 234, 0.3);
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
+        }
+        
+        /* 增強表格整體邊框 */
+        .menu-table {
+            border: 2px solid #667eea;
+        }
+
+        .day-column {
+            font-weight: 600;
+            color: #667eea;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            border-right: 3px solid #667eea !important;
+        }
+
+        .meal-content {
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.5);
+            margin: 4px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .meal-foods {
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .meal-nutrition {
+            color: #666;
+            font-size: 0.75rem;
+            font-style: italic;
+        }
+
+        .calories-row {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            font-weight: 600;
+            border-top: 3px solid #667eea !important;
+        }
+
+        .calories-row td {
+            border-bottom: none;
+            border-right: none !important;
+            border-left: none !important;
+            padding: 10px 8px;
+        }
+
+        .empty-menu-table {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-style: italic;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .menu-locked {
+            position: relative;
+        }
+
+        .menu-locked::after {
+            content: '🔒';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+            opacity: 0.7;
+        }
+
+        .generating-menu {
+            text-align: center;
+            padding: 40px 20px;
+            color: #667eea;
+        }
+
+        .generating-menu .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-menu {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .section-header {
+                padding: 20px;
+            }
+            
+            .section-header h2 {
+                font-size: 1.5rem;
+            }
+            
+            .section-header p {
+                font-size: 1rem;
+            }
+            
+            .weekly-menu-container {
+                padding: 15px;
+            }
+            
+            .menu-table {
+                font-size: 0.8rem;
+            }
+            
+            .menu-table th,
+            .menu-table td {
+                padding: 8px 4px;
+            }
+            
+            .menu-table th {
+                font-size: 0.85rem;
+            }
+            
+            .meal-foods {
+                font-size: 0.75rem;
+                line-height: 1.3;
+            }
+            
+            .meal-nutrition {
+                font-size: 0.7rem;
+            }
+            
+            .day-column {
+                font-size: 0.8rem;
+            }
+            
+            .calories-row {
+                font-size: 0.75rem;
+            }
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .progress-ring {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+        }
+
+        .progress-ring circle {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .progress-ring .bg {
+            stroke: #e1e5e9;
+        }
+
+        .progress-ring .progress {
+            stroke: #667eea;
+            stroke-dasharray: 188.5;
+            stroke-dashoffset: 188.5;
+            transition: stroke-dashoffset 0.3s;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .recommendations {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            color: white;
+        }
+
+        .recommendations h4 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .recommendation-item {
+            background: rgba(255,255,255,0.2);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .chat-container {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .chat-container {
+                grid-column: span 1;
+            }
+            .nutrition-chart {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+    </style>
+</head>
+<body>
+    <!-- AI助手小人物 -->
+    <div class="ai-assistant" onclick="toggleAssistantBubble()">👩‍⚕️</div>
+    <div class="assistant-bubble" id="assistantBubble">
+        <strong>🤖 我是您的AI營養師！</strong><br>
+        <small>點擊我可以：<br>
+        • 分析您的飲食<br>
+        • 提供健康建議<br>
+        • 推薦營養食譜</small>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🥗 智慧飲食助理</h1>
+            <p>您的個人化健康營養顧問</p>
+            
+            <!-- 頁面調試面板 -->
+            <div id="page-debug-panel" style="display: none; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px; max-height: 300px; overflow-y: auto; white-space: pre-wrap;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <strong>🔍 系統調試日誌</strong>
+                    <button onclick="clearPageLog()" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer;">
+                        🗑️ 清除
+                    </button>
+                </div>
+                <div id="page-debug-log"></div>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <button id="toggle-debug" onclick="togglePageDebug()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; margin-right: 10px;">
+                    📊 顯示/隱藏調試信息
+                </button>
+                <button onclick="testWebSocketConnection()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; margin-right: 5px;">
+                    🔧 測試連接
+                </button>
+                <button onclick="testMenuGeneration()" style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; margin-right: 5px;">
+                    🍽️ 測試食譜
+                </button>
+                <button onclick="showTableDemo()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; margin-right: 5px;">
+                    📋 表格示範
+                </button>
+                <button onclick="debugMenuGeneration()" style="background: #ffc107; color: #212529; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; margin-right: 10px;">
+                    🔍 診斷問題
+                </button>
+                <small style="color: #666;">
+                    ℹ️ 如果無法開啟瀏覽器控制台，請使用此除錯面板
+                </small>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- 使用者資訊設定 -->
+            <div class="card">
+                <h3>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                    個人資訊
+                </h3>
+                <div class="form-group">
+                    <label for="age">年齡</label>
+                    <input type="number" id="age" placeholder="例如: 25">
+                </div>
+                <div class="form-group">
+                    <label for="height">身高 (cm)</label>
+                    <input type="number" id="height" placeholder="例如: 170">
+                </div>
+                <div class="form-group">
+                    <label for="weight">體重 (kg)</label>
+                    <input type="number" id="weight" placeholder="例如: 65">
+                </div>
+                <div class="form-group">
+                    <label for="gender">性別</label>
+                    <select id="gender">
+                        <option value="">請選擇</option>
+                        <option value="male">男性</option>
+                        <option value="female">女性</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="activity">活動水平</label>
+                    <select id="activity">
+                        <option value="sedentary">久坐 (很少運動)</option>
+                        <option value="light">輕度活動 (每週1-3次運動)</option>
+                        <option value="moderate">中度活動 (每週3-5次運動)</option>
+                        <option value="high">高度活動 (每週6-7次運動)</option>
+                        <option value="very_high">極高活動 (每天2次運動)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="medical-conditions">特殊疾病</label>
+                    <textarea id="medical-conditions" placeholder="如：糖尿病、高血壓、心臟病等，無則留空" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="allergies">過敏原</label>
+                    <textarea id="allergies" placeholder="如：花生、海鮮、牛奶、雞蛋等，無則留空" rows="2"></textarea>
+                </div>
+                <button class="btn" onclick="saveUserProfile()">儲存設定</button>
+            </div>
+
+            <!-- 健康提醒 -->
+            <div class="card health-alerts" id="health-alerts" style="display: none;">
+                <h3>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    健康提醒
+                </h3>
+                <div id="health-alerts-content">
+                    <!-- 動態生成的健康提醒內容 -->
+                </div>
+            </div>
+
+            <!-- 今日營養攝取 -->
+            <div class="card">
+                <h3>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+                    </svg>
+                    今日營養攝取
+                </h3>
+                <div class="progress-ring">
+                    <svg width="80" height="80">
+                        <circle class="bg" cx="40" cy="40" r="30"></circle>
+                        <circle class="progress" cx="40" cy="40" r="30" id="calorie-progress"></circle>
+                    </svg>
+                    <div class="progress-text" id="calorie-text">0%</div>
+                </div>
+                <div class="nutrition-chart">
+                    <div class="nutrition-item">
+                        <div class="value" id="calories-consumed">0</div>
+                        <div class="label">卡路里</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="value" id="protein-consumed">0g</div>
+                        <div class="label">蛋白質</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="value" id="carbs-consumed">0g</div>
+                        <div class="label">碳水化合物</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="value" id="fat-consumed">0g</div>
+                        <div class="label">脂肪</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 飲食記錄 -->
+            <div class="card">
+                <h3>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/>
+                    </svg>
+                    飲食記錄
+                </h3>
+                <div class="form-group">
+                    <label for="food-name">食物名稱</label>
+                    <input type="text" id="food-name" placeholder="例如: 蘋果" autocomplete="off">
+                    <div id="food-suggestions" style="display: none; position: absolute; background: white; border: 1px solid #ccc; border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 1000; width: calc(100% - 50px); box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
+                </div>
+                <div class="form-group">
+                    <label for="food-amount">分量 (g)</label>
+                    <input type="number" id="food-amount" placeholder="例如: 100">
+                </div>
+                <button class="btn" onclick="addFood()">新增食物</button>
+                <button class="btn btn-secondary" onclick="clearTodayLog()">清空今日記錄</button>
+                
+                <div class="food-log" id="food-log">
+                    <!-- 食物記錄將在這裡顯示 -->
+                </div>
+            </div>
+
+
+
+            <!-- AI助理聊天 -->
+            <div class="card chat-container">
+                <h3>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                    </svg>
+                    AI飲食顧問
+                </h3>
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message ai">
+                        您好！我是您的智慧飲食助理。您可以向我諮詢任何關於營養、健康飲食的問題。比如：
+                        <br>• "我今天的營養攝取如何？"
+                        <br>• "推薦一些減脂食譜"
+                        <br>• "什麼食物富含蛋白質？"
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="chat-input" placeholder="向AI助理提問...">
+                    <button class="btn" onclick="sendMessage()">傳送</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 一週食譜規劃控制面板 -->
+        <div class="card menu-settings-panel">
+            <h3>
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+                </svg>
+                📅 一週食譜規劃設定
+            </h3>
+            <div class="settings-grid">
+                <div class="form-group">
+                    <label for="diet-goal">飲食目標</label>
+                    <select id="diet-goal">
+                        <option value="">請選擇您的目標</option>
+                        <option value="weight-loss">減脂瘦身</option>
+                        <option value="weight-gain">增重增肌</option>
+                        <option value="maintenance">維持體重</option>
+                        <option value="muscle-gain">增肌塑形</option>
+                        <option value="health-recovery">疾病調理</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="cuisine-preference">飲食偏好</label>
+                    <select id="cuisine-preference">
+                        <option value="balanced">均衡飲食</option>
+                        <option value="chinese">中式料理</option>
+                        <option value="western">西式料理</option>
+                        <option value="vegetarian">素食主義</option>
+                        <option value="mediterranean">地中海飲食</option>
+                        <option value="ketogenic">生酮飲食</option>
+                        <option value="low-carb">低碳飲食</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="budget-range">預算範圍</label>
+                    <select id="budget-range">
+                        <option value="low">經濟實惠（每日30-50元）</option>
+                        <option value="medium">中等預算（每日50-100元）</option>
+                        <option value="high">較高預算（每日100-200元）</option>
+                        <option value="premium">精緻飲食（每日200元以上）</option>
+                    </select>
+                </div>
+                <div class="form-group span-full">
+                    <label for="dislike-foods">不喜歡的食物</label>
+                    <textarea id="dislike-foods" placeholder="例如：辣椒、洋蔥、紅蘿蔔等，用逗號分隔" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn" onclick="generateWeeklyMenu()" id="generate-menu-btn">🎯 生成專屬一週食譜</button>
+                <button class="btn btn-secondary" onclick="confirmClearMenu()" id="clear-menu-btn" style="display: none;">🗑️ 刪除目前食譜</button>
+            </div>
+        </div>
+
+        <!-- 一週食譜展示區域 -->
+        <div class="weekly-menu-section">
+            <div class="section-header">
+                <h2>🍽️ 我的一週食譜</h2>
+                <p>根據您的健康狀況和飲食偏好，為您量身定製的專業營養食譜</p>
+            </div>
+            <div class="weekly-menu-container" id="weekly-menu-table">
+                <div class="empty-menu-table">
+                    🍽️ 請先在上方設定您的飲食偏好，然後生成專屬食譜
+                </div>
+            </div>
+        </div>
+
+        <!-- 個人化建議 -->
+        <div class="card">
+            <h3>
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                個人化健康建議
+            </h3>
+            <div class="recommendations" id="recommendations">
+                <h4>💡 今日建議</h4>
+                <div class="recommendation-item">
+                    歡迎使用智慧飲食助理！請先填寫您的個人資訊以獲得個人化建議。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let userProfile = {};
+        let todayFood = [];
+        let nutritionGoals = {};
+        let weeklyMenu = null;
+
+        // WebSocket连接 - 使用遠程服務
+        const ws = new WebSocket(`wss://hshgpt.webduino.tw`);
+        
+        ws.onopen = () => {
+            pageLog('✅ [CONNECTION] WebSocket連接已建立');
+            updateConnectionStatus('connected');
+        };
+        
+        ws.onerror = (error) => {
+            pageLog('❌ [CONNECTION] WebSocket連接錯誤: ' + error);
+            updateConnectionStatus('error');
+        };
+        
+        ws.onclose = (event) => {
+            pageLog(`🔴 [CONNECTION] WebSocket連接已斷開: ${event.code} ${event.reason}`);
+            updateConnectionStatus('disconnected');
+        };
+        
+        // 🔗 連接狀態更新函數
+        function updateConnectionStatus(status) {
+            const generateBtn = document.getElementById('generate-menu-btn');
+            
+            if (status === 'connected') {
+                generateBtn.style.opacity = '1';
+                generateBtn.title = '連接正常，可以生成食譜';
+            } else if (status === 'error' || status === 'disconnected') {
+                generateBtn.style.opacity = '0.5';
+                generateBtn.title = 'WebSocket連接異常，請刷新頁面重試';
+                
+                // 如果正在生成食譜時斷線，顯示錯誤
+                if (isGeneratingMenu) {
+                    isGeneratingMenu = false;
+                    document.getElementById('weekly-menu-table').innerHTML = `
+                        <div class="empty-menu-table">
+                            🔴 連接中斷<br>
+                            <small style="color: #666; margin-top: 8px; display: block;">
+                                WebSocket連接已斷開，請刷新頁面重試
+                            </small>
+                        </div>
+                    `;
+                    resetMenuButtons();
+                }
+            }
+        }
+
+        // 存儲食譜生成的文本
+        let currentMenuText = '';
+        let isGeneratingMenu = false;
+        
+        // 📊 頁面調試系統
+        function togglePageDebug() {
+            const panel = document.getElementById('page-debug-panel');
+            const isVisible = panel.style.display !== 'none';
+            panel.style.display = isVisible ? 'none' : 'block';
+            
+            if (!isVisible) {
+                pageLog('📊 調試面板已開啟');
+                pageLog('ℹ️ 所有系統日誌將在此顯示');
+            }
+        }
+        
+        function pageLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('page-debug-log');
+            if (logDiv) {
+                logDiv.textContent += `[${timestamp}] ${message}\n`;
+                logDiv.scrollTop = logDiv.scrollHeight;
+            }
+            // 同時輸出到控制台（如果能開啟的話）
+            console.log(message);
+        }
+        
+        function clearPageLog() {
+            const logDiv = document.getElementById('page-debug-log');
+            if (logDiv) {
+                logDiv.textContent = '';
+            }
+        }
+        
+        // 🔧 測試WebSocket連接
+        function testWebSocketConnection() {
+            pageLog('🔧 [TEST] 開始測試WebSocket連接...');
+            pageLog('📊 [TEST] 連接狀態: ' + ws.readyState + ' (0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED)');
+            
+            if (ws.readyState === WebSocket.OPEN) {
+                pageLog('✅ [TEST] WebSocket連接正常，發送測試消息...');
+                
+                // 發送一個簡單的測試請求
+                const testPrompt = '請簡單回答：你好嗎？';
+                ws.send(JSON.stringify({ 
+                    prompt: testPrompt, 
+                    requestType: 'chat'
+                }));
+                
+                pageLog('📤 [TEST] 測試消息已發送，等待回應...');
+                
+                // 設置測試超時
+                setTimeout(() => {
+                    pageLog('⏰ [TEST] 測試結束（10秒）');
+                }, 10000);
+                
+            } else {
+                pageLog('❌ [TEST] WebSocket連接異常，嘗試重新連接...');
+                pageLog('💡 [TEST] 建議刷新頁面重新建立連接');
+            }
+        }
+        
+        // 🍽️ 測試食譜生成
+        function testMenuGeneration() {
+            pageLog('🍽️ [MENU-TEST] 開始測試食譜生成...');
+            
+            if (ws.readyState !== WebSocket.OPEN) {
+                pageLog('❌ [MENU-TEST] WebSocket連接異常，無法測試');
+                return;
+            }
+            
+            // 設置測試狀態
+            isGeneratingMenu = true;
+            currentMenuText = '';
+            
+            pageLog('🔧 [MENU-TEST] 設置測試模式，isGeneratingMenu = true');
+            
+            // 發送簡化的食譜測試請求，使用繁體中文
+            const testPrompt = `【重要】請使用繁體中文回答，並使用台灣的食物用詞。
+
+請生成一週的簡單食譜，包含早餐、午餐、晚餐。
+
+格式要求：
+週一 總計約1800卡
+早餐：燕麥粥 + 水煮蛋 + 牛奶 (約400卡)
+午餐：雞胸肉沙拉 + 全麥麵包 (約700卡)
+晚餐：清蒸魚 + 蒸蛋 + 青菜 (約500卡)
+
+請提供完整的一週食譜。`;
+            
+            const testRequest = {
+                prompt: testPrompt,
+                requestType: 'weekly-menu'
+            };
+            
+            pageLog('📤 [MENU-TEST] 發送測試請求: ' + JSON.stringify(testRequest));
+            
+            ws.send(JSON.stringify(testRequest));
+            
+            // 測試超時
+            setTimeout(() => {
+                if (isGeneratingMenu) {
+                    pageLog('⏰ [MENU-TEST] 測試超時（30秒），重置狀態');
+                    isGeneratingMenu = false;
+                    currentMenuText = '';
+                } else {
+                    pageLog('✅ [MENU-TEST] 測試已完成');
+                }
+            }, 30000);
+        }
+         
+         // 📋 顯示表格示範
+         function showTableDemo() {
+             pageLog('📋 [DEMO] 顯示表格格式示範');
+             
+             const demoMenuText = `週一 總計約1980卡
+🍽️ 早餐：燕麥粥 + 無糖豆漿 + 水煮蛋 + 奇異果 (共約420卡，蛋白質20g)
+🍽️ 午餐：蒸雞胸肉 + 雜糧飯 + 涼拌小黃瓜 + 味噌湯 (共約620卡，蛋白質38g)
+🍽️ 晚餐：清蒸鯛魚 + 蒸蛋 + 炒青江菜 + 小份馬鈴薯泥 (共約540卡，蛋白質25g)
+
+週二 總計約1950卡
+🍽️ 早餐：全麥吐司 + 無糖低脂優格 + 水煮蛋 + 蘋果半顆 (約430卡，蛋白質22g)
+🍽️ 午餐：炒牛肉片 + 糙米飯 + 炒四季豆 + 紫菜湯 (約680卡，蛋白質40g)
+🍽️ 晚餐：邊蝦仁 + 蒸絲瓜 + 糙米飯 + 紫菜紅豆湯 (約540卡，蛋白質25g)
+
+週三 總計約1900卡
+🍽️ 早餐：地瓜 + 蒸蛋 + 無糖豆漿 + 小番茄 (約400卡，蛋白質18g)
+🍽️ 午餐：烤鮭魚 + 五穀飯 + 炒高麗菜 + 海帶湯 (約650卡，蛋白質35g)
+🍽️ 晚餐：蒸雞腿肉 + 炒青花菜 + 糙米粥 + 蛤蜊湯 (約500卡，蛋白質28g)`;
+             
+             // 強制使用表格格式顯示
+             const tableHtml = forceTableGeneration(demoMenuText);
+             
+             // 顯示在食譜區域
+             const weeklyMenuDiv = document.getElementById('weekly-menu-table');
+             weeklyMenuDiv.innerHTML = tableHtml;
+             
+             // 更新按鈕狀態
+             document.getElementById('generate-menu-btn').style.display = 'none';
+             document.getElementById('clear-menu-btn').style.display = 'inline-block';
+             
+             pageLog('✅ [DEMO] 表格示範已顯示');
+         }
+         
+         // 🔍 診斷食譜生成問題
+         function debugMenuGeneration() {
+             pageLog('🔍 [DIAGNOSIS] ===== 開始診斷食譜生成問題 =====');
+             
+             // 檢查1: 界面元素
+             pageLog('📋 [DIAGNOSIS] 步驟1: 檢查界面元素');
+             const dietGoal = document.getElementById('diet-goal');
+             const cuisinePreference = document.getElementById('cuisine-preference');
+             const dislikeFoods = document.getElementById('dislike-foods');
+             const budgetRange = document.getElementById('budget-range');
+             
+             pageLog('📊 [DIAGNOSIS] 飲食目標元素: ' + (dietGoal ? '存在' : '不存在'));
+             pageLog('🍽️ [DIAGNOSIS] 飲食偏好元素: ' + (cuisinePreference ? '存在' : '不存在'));
+             pageLog('🚫 [DIAGNOSIS] 不喜歡食物元素: ' + (dislikeFoods ? '存在' : '不存在'));
+             pageLog('💰 [DIAGNOSIS] 預算範圍元素: ' + (budgetRange ? '存在' : '不存在'));
+             
+             if (dietGoal) pageLog('📊 [DIAGNOSIS] 飲食目標值: ' + dietGoal.value);
+             if (cuisinePreference) pageLog('🍽️ [DIAGNOSIS] 飲食偏好值: ' + cuisinePreference.value);
+             if (dislikeFoods) pageLog('🚫 [DIAGNOSIS] 不喜歡食物值: ' + dislikeFoods.value);
+             if (budgetRange) pageLog('💰 [DIAGNOSIS] 預算範圍值: ' + budgetRange.value);
+             
+             // 檢查2: 現有食譜
+             pageLog('📋 [DIAGNOSIS] 步驟2: 檢查現有食譜');
+             pageLog('🍽️ [DIAGNOSIS] weeklyMenu狀態: ' + (weeklyMenu ? '存在' : '無'));
+             if (weeklyMenu) {
+                 pageLog('📄 [DIAGNOSIS] weeklyMenu內容: ' + (weeklyMenu.content ? '有內容' : '無內容'));
+             }
+             
+             // 檢查3: 用戶資料
+             pageLog('📋 [DIAGNOSIS] 步驟3: 檢查用戶資料');
+             pageLog('👤 [DIAGNOSIS] userProfile: ' + JSON.stringify(userProfile));
+             const requiredFields = ['age', 'height', 'weight', 'gender', 'activity'];
+             const missingFields = requiredFields.filter(field => !userProfile[field]);
+             pageLog('❌ [DIAGNOSIS] 缺少的必填字段: ' + (missingFields.length > 0 ? missingFields.join(', ') : '無'));
+             
+             // 檢查4: 營養目標
+             pageLog('📋 [DIAGNOSIS] 步驟4: 檢查營養目標');
+             pageLog('🎯 [DIAGNOSIS] nutritionGoals: ' + JSON.stringify(nutritionGoals));
+             pageLog('📊 [DIAGNOSIS] 營養目標calories: ' + (nutritionGoals?.calories || '未設置'));
+             
+             // 檢查5: WebSocket狀態
+             pageLog('📋 [DIAGNOSIS] 步驟5: 檢查WebSocket狀態');
+             pageLog('🔗 [DIAGNOSIS] WebSocket狀態: ' + ws.readyState + ' (1=正常)');
+             
+             // 檢查6: 生成狀態
+             pageLog('📋 [DIAGNOSIS] 步驟6: 檢查生成狀態');
+             pageLog('⚙️ [DIAGNOSIS] isGeneratingMenu: ' + isGeneratingMenu);
+             
+             // 總結診斷結果
+             pageLog('📋 [DIAGNOSIS] ===== 診斷總結 =====');
+             
+             let issueCount = 0;
+             
+             if (!dietGoal?.value) {
+                 pageLog('❌ [DIAGNOSIS] 問題1: 飲食目標未設置');
+                 issueCount++;
+             }
+             
+             if (weeklyMenu && weeklyMenu.content) {
+                 pageLog('❌ [DIAGNOSIS] 問題2: 已有食譜存在，需先刪除');
+                 issueCount++;
+             }
+             
+             if (missingFields.length > 0) {
+                 pageLog('❌ [DIAGNOSIS] 問題3: 用戶資料不完整 - ' + missingFields.join(', '));
+                 issueCount++;
+             }
+             
+             if (!nutritionGoals?.calories) {
+                 pageLog('❌ [DIAGNOSIS] 問題4: 營養目標未計算');
+                 issueCount++;
+             }
+             
+             if (ws.readyState !== 1) {
+                 pageLog('❌ [DIAGNOSIS] 問題5: WebSocket連接異常');
+                 issueCount++;
+             }
+             
+             if (isGeneratingMenu) {
+                 pageLog('❌ [DIAGNOSIS] 問題6: 正在生成中，請等待完成');
+                 issueCount++;
+             }
+             
+             if (issueCount === 0) {
+                 pageLog('✅ [DIAGNOSIS] 未發現問題，食譜生成應該能正常工作');
+                 pageLog('💡 [DIAGNOSIS] 建議: 嘗試直接點擊"生成專屬一週食譜"按鈕');
+             } else {
+                 pageLog('🔧 [DIAGNOSIS] 發現 ' + issueCount + ' 個問題，請根據上述提示解決');
+             }
+             
+             pageLog('🔍 [DIAGNOSIS] ===== 診斷完成 =====');
+         }
+ 
+          ws.onmessage = (event) => {
+            // 📨 記錄所有收到的原始消息
+            pageLog('📨 [RAW] 收到WebSocket原始消息: ' + event.data.substring(0, 200) + '...');
+            
+            const data = JSON.parse(event.data);
+            
+            pageLog('📨 [DEBUG] 解析後的消息: type=' + data.type + ', requestType=' + data.requestType + ', isGeneratingMenu=' + isGeneratingMenu);
+            
+            if (data.delta) {
+                pageLog('📝 [DEBUG] 消息內容預覽: ' + data.delta.substring(0, 100) + '...');
+            }
+            
+            // 🔍 檢查是否缺少requestType（可能是問題根源）
+            if (!data.requestType) {
+                pageLog('⚠️ [WARNING] 消息缺少requestType字段');
+                
+                // 🔧 備用識別機制：如果正在生成食譜且收到消息，視為食譜回應
+                if (isGeneratingMenu) {
+                    pageLog('🔧 [FALLBACK] 正在生成食譜期間收到消息，視為食譜回應');
+                    data.requestType = 'weekly-menu'; // 手動設置requestType
+                } else {
+                    pageLog('📝 [FALLBACK] 非食譜生成期間，視為聊天消息');
+                }
+            }
+            
+            // 🛡️ 超級保護：如果是食譜生成請求，絕對不能進入聊天處理
+            if (data.requestType === 'weekly-menu') {
+                pageLog('🍽️ [MENU] 食譜生成模式 - 完全隔離聊天模組: ' + data.type);
+                
+                if (data.type === 'start') {
+                    isGeneratingMenu = true;
+                    currentMenuText = '';
+                    pageLog('🎯 [MENU] 開始生成食譜，設置隔離狀態');
+                } else if (data.type === 'chunk') {
+                    let cleanText = data.delta;
+                    // 過濾調試訊息
+                    if (!cleanText.includes('正在傳送 prompt') && 
+                        !cleanText.includes('Azure OpenAI 回應') && 
+                        !cleanText.includes('--- 回應結束 ---') &&
+                        !cleanText.includes('>>>>>')) {
+                        currentMenuText += cleanText;
+                        pageLog('📝 [MENU] 累積食譜內容，長度: ' + currentMenuText.length);
+                    } else {
+                        pageLog('🚫 [MENU] 過濾調試訊息: ' + cleanText.substring(0, 50));
+                    }
+                } else if (data.type === 'end') {
+                    isGeneratingMenu = false;
+                    pageLog('✅ [MENU] 食譜生成完成，總長度: ' + currentMenuText.length);
+                    pageLog('📄 [MENU] 準備顯示食譜內容');
+                    
+                    if (currentMenuText.trim().length > 0) {
+                        handleWeeklyMenuResponse(currentMenuText);
+                    } else {
+                        pageLog('❌ [MENU] 食譜內容為空！');
+                        document.getElementById('weekly-menu-table').innerHTML = `
+                            <div class="empty-menu-table">
+                                ❌ 食譜生成失敗：內容為空，請重試
+                            </div>
+                        `;
+                        resetMenuButtons();
+                    }
+                    currentMenuText = '';
+                } else if (data.type === 'error') {
+                    pageLog('❌ [MENU] 食譜生成錯誤: ' + data.message);
+                    isGeneratingMenu = false;
+                    document.getElementById('weekly-menu-table').innerHTML = `
+                        <div class="empty-menu-table">
+                            ❌ 食譜生成失敗<br>
+                            <small style="color: #666; margin-top: 8px; display: block;">
+                                錯誤詳情：${data.message}<br>
+                                請檢查網路連接或稍後重試
+                            </small>
+                        </div>
+                    `;
+                    resetMenuButtons();
+                } else {
+                    pageLog('⚠️ [MENU] 未知的消息類型: ' + data.type);
+                }
+                
+                // 🚫 絕對阻止：無論如何都不能進入聊天處理邏輯
+                pageLog('🚫 [MENU] 阻止食譜內容進入聊天模組');
+                return;
+            }
+            
+            // 🛡️ 二重保護：如果正在生成食譜，阻止聊天訊息（但不阻止食譜訊息）
+            if (isGeneratingMenu && data.requestType !== 'weekly-menu') {
+                pageLog('🚫 [PROTECT] 食譜生成中，忽略聊天訊息');
+                return;
+            }
+            
+            // 🛡️ 三重保護：內容格式檢測，強制過濾食譜格式
+            if (data.delta && containsMenuContent(data.delta)) {
+                pageLog('🚫 [PROTECT] 檢測到食譜格式，強制過濾: ' + data.delta.substring(0, 50));
+                return;
+            }
+            
+            // 🔍 檢查未知的requestType
+            if (data.requestType && data.requestType !== 'chat' && data.requestType !== 'weekly-menu') {
+                pageLog('⚠️ [UNKNOWN] 未知的requestType: ' + data.requestType);
+            }
+            
+            // 正常聊天處理邏輯
+            pageLog('💬 [CHAT] 處理聊天響應: type=' + data.type + ', requestType=' + data.requestType);
+            
+            if (data.type === 'chunk') {
+                let cleanText = data.delta;
+                
+                // 過濾調試訊息
+                if (cleanText.includes('正在傳送 prompt') || 
+                    cleanText.includes('Azure OpenAI 回應') || 
+                    cleanText.includes('--- 回應結束 ---') ||
+                    cleanText.includes('>>>>>')) {
+                    console.log('🚫 [CHAT] 過濾調試訊息');
+                    return;
+                }
+                
+                console.log('✅ [CHAT] 顯示聊天内容:', cleanText.substring(0, 50));
+                appendToLastMessage(cleanText);
+            } else if (data.type === 'end') {
+                console.log('💬 [CHAT] 聊天響應結束');
+                enableChatInput();
+            } else if (data.type === 'start') {
+                console.log('💬 [CHAT] 開始聊天響應');
+                addMessage('ai', '');
+                disableChatInput();
+            }
+        };
+
+        // 檢測文本是否包含食譜格式內容
+        function containsMenuContent(text) {
+            const menuPatterns = [
+                // 日期格式
+                /周[一二三四五六日天]/,
+                /星期[一二三四五六日天]/,
+                /礼拜[一二三四五六日天]/,
+                /第[一二三四五六七]天/,
+                
+                // 餐次格式
+                /(早餐|午餐|晚餐|宵夜)[：:]\s*\S/,
+                /早餐.*[+＋]/,
+                /午餐.*[+＋]/,
+                /晚餐.*[+＋]/,
+                
+                // 營養格式
+                /\d+\s*[大]?卡[路里]*/,
+                /总计.*\d+.*卡/,
+                /蛋白質\s*\d+\s*g/,
+                /約\d+卡/,
+                /\d+g蛋白質/,
+                /碳水化合物\s*\d+\s*g/,
+                /脂肪\s*\d+\s*g/,
+                
+                // 食物連接格式
+                /\S+\s*[+＋]\s*\S+\s*[+＋]/,
+                
+                // 一週食譜標題格式
+                /一週.*食譜/,
+                /七天.*食譜/,
+                /專屬.*食譜/
+            ];
+            
+            const hasMenuPattern = menuPatterns.some(pattern => pattern.test(text));
+            
+            if (hasMenuPattern) {
+                console.log('🔍 [DETECT] 檢測到食譜格式:', text.substring(0, 100));
+            }
+            
+            return hasMenuPattern;
+        }
+
+        // 儲存使用者資料
+        async function saveUserProfile() {
+            const age = parseInt(document.getElementById('age').value);
+            const height = parseInt(document.getElementById('height').value);
+            const weight = parseInt(document.getElementById('weight').value);
+            const gender = document.getElementById('gender').value;
+            const activity = document.getElementById('activity').value;
+            const medicalConditions = document.getElementById('medical-conditions').value.trim();
+            const allergies = document.getElementById('allergies').value.trim();
+
+            if (!age || !height || !weight || !gender) {
+                // 靜默返回，不顯示彈窗
+                return;
+            }
+
+            userProfile = { age, height, weight, gender, activity, medicalConditions, allergies };
+            
+            // 計算營養目標
+            const success = await calculateNutritionGoals();
+            
+            if (success) {
+                // 儲存到本地存儲
+                localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                localStorage.setItem('nutritionGoals', JSON.stringify(nutritionGoals));
+                
+                await updateRecommendations();
+                updateNutritionDisplay();
+                updateHealthAlerts();
+                
+                // 個人資訊已儲存，不需要彈窗
+            } else {
+                // 儲存失敗，不需要彈窗
+            }
+        }
+
+        // 計算營養目標 (呼叫後端API)
+        async function calculateNutritionGoals() {
+            try {
+                const response = await fetch('/api/calculate/bmr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userProfile)
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    nutritionGoals = data.nutritionGoals;
+                    userProfile.bmi = data.bmi;
+                    userProfile.bmr = data.bmr;
+                    userProfile.dailyCalories = data.dailyCalories;
+                    return true;
+                }
+            } catch (error) {
+                console.error('計算營養目標失敗:', error);
+            }
+            
+            // 失敗時使用本地計算
+            const { age, height, weight, gender, activity } = userProfile;
+            
+            // 基礎代謝率計算 (Harris-Benedict公式)
+            let bmr;
+            if (gender === 'male') {
+                bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+            } else {
+                bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+            }
+            
+            // 活動係數
+            const activityMultipliers = {
+                sedentary: 1.2,
+                light: 1.375,
+                moderate: 1.55,
+                high: 1.725,
+                very_high: 1.9
+            };
+            
+            const dailyCalories = Math.round(bmr * activityMultipliers[activity]);
+            
+            nutritionGoals = {
+                calories: dailyCalories,
+                protein: Math.round(weight * 1.2), // 1.2g/kg體重
+                carbs: Math.round(dailyCalories * 0.45 / 4), // 45%來自碳水
+                fat: Math.round(dailyCalories * 0.25 / 9) // 25%來自脂肪
+            };
+            
+            return true;
+        }
+
+        // 驗證食物真實性
+        function validateFoodItem(foodName) {
+            console.log('🔍 [FOOD-VALIDATION] 開始驗證食物:', foodName);
+            
+            // 常見的非食物詞彙列表
+            const nonFoodItems = [
+                // 物品類
+                '桌子', '椅子', '電腦', '手機', '車子', '汽車', '機車', '腳踏車', '書', '筆', '紙', '衣服', '褲子', '鞋子', '襪子',
+                '電視', '冰箱', '洗衣機', '冷氣', '風扇', '燈', '床', '枕頭', '棉被', '毛巾', '牙刷', '牙膏', '肥皂', '洗髮精',
+                '包包', '錢包', '手錶', '眼鏡', '帽子', '雨傘', '鑰匙', '門', '窗戶', '牆壁', '地板', '天花板',
+                
+                // 運動/遊戲器材
+                '撞球桌', '乒乓球桌', '桌球桌', '麻將桌', '撞球', '桌球', '乒乓球', '麻將', '球桌', '遊戲桌',
+                '籃球', '足球', '排球', '網球', '羽毛球', '桌遊', '電玩', '遊戲機', '電動', '麻將牌', '撲克牌',
+                
+                // 材料/化學物質
+                '塑膠', '金屬', '木頭', '石頭', '玻璃', '水泥', '油漆', '膠水', '釘子', '螺絲', '電線', '管子',
+                '汽油', '酒精', '氫氣', '氧氣', '二氧化碳', '鹽酸', '硫酸', '氨水', '漂白水', '清潔劑',
+                
+                // 抽象概念
+                '愛情', '友情', '快樂', '悲傷', '憤怒', '害怕', '驚訝', '時間', '空間', '夢想', '希望', '信仰',
+                '自由', '和平', '戰爭', '政治', '經濟', '教育', '文化', '藝術', '音樂', '運動',
+                
+                // 動物（活體，非食材）
+                '貓', '狗', '老鼠', '兔子', '倉鼠', '鳥', '魚缸', '寵物', '昆蟲', '蜘蛛', '蛇', '獅子', '老虎', '大象',
+                
+                // 人體部位
+                '頭', '手', '腳', '眼睛', '鼻子', '嘴巴', '耳朵', '頭髮', '皮膚', '骨頭', '肌肉', '血液',
+                
+                // 地點
+                '台北', '台中', '台南', '高雄', '學校', '公司', '醫院', '銀行', '超市', '餐廳', '公園', '海邊', '山上',
+                
+                // 職業/人物
+                '老師', '學生', '醫生', '護士', '警察', '消防員', '司機', '廚師', '律師', '工程師', '老闆', '員工',
+                
+                // 無意義或測試用詞
+                'test', 'testing', '測試', '123', 'abc', 'hello', 'world', 'aaa', 'bbb', 'xxx', 'yyy', 'zzz',
+                'qwerty', 'asdf', '隨便', '什麼都可以', '不知道', '沒有', '空的', '無',
+                
+                // 不當內容
+                '毒品', '藥品', '維他命', '保健食品', '營養補充劑', '藥丸', '膠囊', '藥水'
+            ];
+            
+            // 檢查是否為非食物項目 - 完全匹配
+            const lowerFoodName = foodName.toLowerCase();
+            console.log('🔍 [FOOD-VALIDATION] 轉為小寫:', lowerFoodName);
+            
+            // 首先檢查完全匹配
+            if (nonFoodItems.some(item => lowerFoodName === item.toLowerCase())) {
+                console.log('❌ [FOOD-VALIDATION] 完全匹配非食物項目');
+                return false;
+            }
+            
+            // 然後檢查包含關係
+            const foundItem = nonFoodItems.find(item => lowerFoodName.includes(item.toLowerCase()) || item.toLowerCase().includes(lowerFoodName));
+            if (foundItem) {
+                console.log('❌ [FOOD-VALIDATION] 包含非食物項目:', foundItem);
+                return false;
+            }
+            
+            // 檢查是否為純數字或純字母
+            if (/^\d+$/.test(foodName) || /^[a-zA-Z]+$/.test(foodName)) {
+                console.log('❌ [FOOD-VALIDATION] 純數字或純字母');
+                return false;
+            }
+            
+            // 檢查是否為特殊字符或過短
+            if (foodName.length < 2 || /[!@#$%^&*()_+=\[\]{}|;:,.<>?]/.test(foodName)) {
+                console.log('❌ [FOOD-VALIDATION] 特殊字符或過短');
+                return false;
+            }
+            
+            console.log('✅ [FOOD-VALIDATION] 驗證通過');
+            return true;
+        }
+
+        // 🧪 測試驗證功能 (可在控制台使用)
+        function testFoodValidation() {
+            const testCases = ['撞球桌', '蘋果', 'test', '桌子', '雞胸肉', '123', '愛情'];
+            console.log('🧪 [TEST] 開始測試食物驗證功能:');
+            testCases.forEach(food => {
+                const result = validateFoodItem(food);
+                console.log(`${result ? '✅' : '❌'} "${food}" -> ${result ? '有效' : '無效'}`);
+            });
+        }
+
+        // 新增食物
+        async function addFood() {
+            const foodName = document.getElementById('food-name').value.trim();
+            const amount = parseInt(document.getElementById('food-amount').value);
+            
+            if (!foodName || !amount) {
+                // 靜默返回，不顯示彈窗
+                return;
+            }
+            
+            // 驗證食物真實性
+            if (!validateFoodItem(foodName)) {
+                // 顯示食物驗證錯誤提示
+                const existingWarning = document.getElementById('food-validation-warning');
+                if (existingWarning) {
+                    existingWarning.remove();
+                }
+                
+                const warningDiv = document.createElement('div');
+                warningDiv.id = 'food-validation-warning';
+                warningDiv.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(135deg, #ff9500, #ff6b35);
+                    color: white;
+                    padding: 20px 30px;
+                    border-radius: 15px;
+                    box-shadow: 0 10px 30px rgba(255, 149, 0, 0.3);
+                    z-index: 9999;
+                    font-size: 16px;
+                    font-weight: 600;
+                    text-align: center;
+                    min-width: 350px;
+                    animation: warningPulse 0.5s ease-in-out;
+                `;
+                warningDiv.innerHTML = `
+                    <div style="font-size: 24px; margin-bottom: 10px;">🚫 輸入錯誤</div>
+                    <div>"${foodName}" 不是有效的食物名稱</div>
+                    <div style="margin-top: 10px; font-size: 14px; opacity: 0.9;">
+                        系統偵測到這不是真正的食物<br>
+                        請輸入可食用的食物名稱，例如：<br>
+                        🍎 蘋果、🍌 香蕉、🍗 雞胸肉、🍚 白飯、🥬 青菜
+                    </div>
+                    <div style="margin-top: 15px; font-size: 14px; opacity: 0.9;">此提醒將在4秒後自動消失</div>
+                `;
+                
+                document.body.appendChild(warningDiv);
+                
+                // 4秒後自動移除警告
+                setTimeout(() => {
+                    if (document.getElementById('food-validation-warning')) {
+                        document.getElementById('food-validation-warning').remove();
+                    }
+                }, 4000);
+                
+                // 清空輸入框但不新增食物
+                document.getElementById('food-name').value = '';
+                document.getElementById('food-amount').value = '';
+                return;
+            }
+            
+            // 檢查過敏原
+            const detectedAllergy = checkFoodAllergies(foodName);
+            if (detectedAllergy) {
+                // 建立過敏原警告提示
+                const existingWarning = document.getElementById('allergy-warning');
+                if (existingWarning) {
+                    existingWarning.remove();
+                }
+                
+                const warningDiv = document.createElement('div');
+                warningDiv.id = 'allergy-warning';
+                warningDiv.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+                    color: white;
+                    padding: 20px 30px;
+                    border-radius: 15px;
+                    box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+                    z-index: 9999;
+                    font-size: 16px;
+                    font-weight: 600;
+                    text-align: center;
+                    min-width: 300px;
+                    animation: warningPulse 0.5s ease-in-out;
+                `;
+                warningDiv.innerHTML = `
+                    <div style="font-size: 24px; margin-bottom: 10px;">⚠️ 過敏原警告</div>
+                    <div>您對"${detectedAllergy}"過敏，請勿食用"${foodName}"！</div>
+                    <div style="margin-top: 15px; font-size: 14px; opacity: 0.9;">此提醒將在3秒後自動消失</div>
+                `;
+                
+                document.body.appendChild(warningDiv);
+                
+                // 3秒後自動移除警告
+                setTimeout(() => {
+                    if (document.getElementById('allergy-warning')) {
+                        document.getElementById('allergy-warning').remove();
+                    }
+                }, 3000);
+                
+                // 清空輸入框但不新增食物
+                document.getElementById('food-name').value = '';
+                document.getElementById('food-amount').value = '';
+                return;
+            }
+            
+            // 取得食物營養資訊 (這裡使用模擬資料)
+            const nutrition = await getFoodNutrition(foodName, amount);
+            
+            const foodItem = {
+                name: foodName,
+                amount: amount,
+                time: new Date().toLocaleTimeString(),
+                ...nutrition
+            };
+            
+            todayFood.push(foodItem);
+            
+            // 儲存到本地存儲
+            localStorage.setItem('todayFood', JSON.stringify(todayFood));
+            
+            // 更新顯示
+            updateFoodLog();
+            updateNutritionDisplay();
+            updateRecommendations(); // 更新建議
+            
+            // 清空輸入框
+            document.getElementById('food-name').value = '';
+            document.getElementById('food-amount').value = '';
+        }
+
+        // 取得食物營養資訊 (呼叫後端API)
+        async function getFoodNutrition(foodName, amount) {
+            try {
+                const response = await fetch(`/api/food/${encodeURIComponent(foodName)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const nutrition = data.nutrition;
+                    return {
+                        calories: Math.round(nutrition.calories * amount / 100),
+                        protein: Math.round(nutrition.protein * amount / 100 * 10) / 10,
+                        carbs: Math.round(nutrition.carbs * amount / 100 * 10) / 10,
+                        fat: Math.round(nutrition.fat * amount / 100 * 10) / 10,
+                        fiber: Math.round(nutrition.fiber * amount / 100 * 10) / 10,
+                        sugar: Math.round(nutrition.sugar * amount / 100 * 10) / 10,
+                        isEstimate: data.isEstimate
+                    };
+                }
+            } catch (error) {
+                console.error('取得營養資訊失敗:', error);
+            }
+            
+            // 失敗時返回預設值
+            return {
+                calories: Math.round(50 * amount / 100),
+                protein: Math.round(1 * amount / 100 * 10) / 10,
+                carbs: Math.round(10 * amount / 100 * 10) / 10,
+                fat: Math.round(0.5 * amount / 100 * 10) / 10,
+                fiber: Math.round(1 * amount / 100 * 10) / 10,
+                sugar: Math.round(2 * amount / 100 * 10) / 10,
+                isEstimate: true
+            };
+        }
+
+        // 更新食物日誌顯示
+        function updateFoodLog() {
+            const foodLog = document.getElementById('food-log');
+            foodLog.innerHTML = '';
+            
+            todayFood.forEach((food, index) => {
+                const foodItem = document.createElement('div');
+                foodItem.className = 'food-item';
+                foodItem.innerHTML = `
+                    <div class="info">
+                        <div class="name">${food.name}</div>
+                        <div class="details">${food.amount}g · ${food.time}</div>
+                    </div>
+                    <div class="calories">${food.calories}卡</div>
+                    <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;" onclick="removeFood(${index})">刪除</button>
+                `;
+                foodLog.appendChild(foodItem);
+            });
+        }
+
+        // 刪除食物
+        function removeFood(index) {
+            todayFood.splice(index, 1);
+            localStorage.setItem('todayFood', JSON.stringify(todayFood));
+            updateFoodLog();
+            updateNutritionDisplay();
+        }
+
+        // 清空今日記錄
+        function clearTodayLog() {
+            // 直接清空，不需要確認彈窗
+            todayFood = [];
+            localStorage.removeItem('todayFood');
+            updateFoodLog();
+            updateNutritionDisplay();
+        }
+
+        // 更新健康提醒
+        function updateHealthAlerts() {
+            const healthAlertsCard = document.getElementById('health-alerts');
+            const healthAlertsContent = document.getElementById('health-alerts-content');
+            
+            let hasAlerts = false;
+            let alertsHtml = '';
+            
+            // 檢查過敏原提醒
+            if (userProfile.allergies && userProfile.allergies.trim()) {
+                hasAlerts = true;
+                const allergiesList = userProfile.allergies.split(/[,，、\n]/).map(item => item.trim()).filter(item => item);
+                alertsHtml += `
+                    <div class="alert-item danger">
+                        <div class="alert-icon">⚠️</div>
+                        <div class="alert-content">
+                            <div class="alert-title">過敏原警告</div>
+                            <div class="alert-description">您對以下食物過敏：${allergiesList.join('、')}。請務必避免食用這些食物及其製品。</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 檢查特殊疾病提醒
+            if (userProfile.medicalConditions && userProfile.medicalConditions.trim()) {
+                hasAlerts = true;
+                const conditions = userProfile.medicalConditions.toLowerCase();
+                
+                // 糖尿病提醒
+                if (conditions.includes('糖尿病') || conditions.includes('血糖')) {
+                    alertsHtml += `
+                        <div class="alert-item warning">
+                            <div class="alert-icon">🩺</div>
+                            <div class="alert-content">
+                                <div class="alert-title">第二型糖尿病專業飲食指導</div>
+                                <div class="alert-description">【避免】高升糖指數食物：白米飯、白麵包、糖果、含糖飲料、精製食品。【推薦】低升糖食物：全穀物、高纖維蔬菜、瘦肉蛋白、健康脂肪。【原則】定時定量進餐，血糖監測，營養均衡。</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 高血壓提醒
+                if (conditions.includes('高血壓') || conditions.includes('血壓')) {
+                    alertsHtml += `
+                        <div class="alert-item warning">
+                            <div class="alert-icon">❤️</div>
+                            <div class="alert-content">
+                                <div class="alert-title">高血壓專業飲食管理</div>
+                                <div class="alert-description">【限制鈉攝取】每日<2.3g，避免加工食品、醃製品、鹹菜。【DASH飲食】富含鉀蔬果(香蕉、菠菜)、低脂乳製品、全穀物。【監測】定期血壓測量，體重控制。</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 心脏病提醒
+                if (conditions.includes('心脏病') || conditions.includes('心血管')) {
+                    alertsHtml += `
+                        <div class="alert-item warning">
+                            <div class="alert-icon">💓</div>
+                            <div class="alert-content">
+                                <div class="alert-title">心臟病/心血管疾病專業營養</div>
+                                <div class="alert-description">【限制】飽和脂肪、反式脂肪、高膽固醇食物。【推薦】富含Omega-3深海魚類、堅果、橄欖油、燕麥β-葡聚糖。【目標】降低LDL膽固醇，控制體重，地中海飲食模式。</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 痛风提醒
+                if (conditions.includes('痛风') || conditions.includes('尿酸')) {
+                    alertsHtml += `
+                        <div class="alert-item warning">
+                            <div class="alert-icon">🦴</div>
+                            <div class="alert-content">
+                                <div class="alert-title">痛風/高尿酸血症專業管理</div>
+                                <div class="alert-description">【嚴格避免】高嘌呤食物：內臟、海鮮、酒精、肉湯。【推薦】低脂乳製品、蔬菜、櫻桃(抗炎)、充足水分(>2L/日)。【目標】維持尿酸<6mg/dL，體重控制。</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 肾病提醒
+                if (conditions.includes('肾病') || conditions.includes('肾功能')) {
+                    alertsHtml += `
+                        <div class="alert-item warning">
+                            <div class="alert-icon">🫘</div>
+                            <div class="alert-content">
+                                <div class="alert-title">腎臟疾病專業營養管理</div>
+                                <div class="alert-description">【嚴格限制】蛋白質攝取(根據腎功能調整)、高磷食物、高鉀食物。【控制】鈉和水分攝取。【監測】腎功能指標、電解質平衡。【建議】營養師專業指導。</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 贫血提醒
+                if (conditions.includes('贫血') || conditions.includes('缺铁')) {
+                    alertsHtml += `
+                        <div class="alert-item warning">
+                            <div class="alert-icon">🩸</div>
+                            <div class="alert-content">
+                                <div class="alert-title">貧血專業營養補充</div>
+                                <div class="alert-description">【增加】富含鐵質食物：紅肉、肝臟、菠菜。【促進吸收】維生素C食物：柑橘類、奇異果。【避免】茶咖啡與鐵劑同服。【補充】葉酸、維生素B12。</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 肥胖提醒
+                if (conditions.includes('肥胖') || conditions.includes('超重') || conditions.includes('減肥')) {
+                    alertsHtml += `
+                        <div class="alert-item warning">
+                            <div class="alert-icon">⚖️</div>
+                            <div class="alert-content">
+                                <div class="alert-title">肥胖/超重專業管理</div>
+                                <div class="alert-description">【熱量控制】創造熱量缺口，適度減重。【食物選擇】高纖維、低能量密度食物。【飲食模式】分量控制、規律進餐。【生活方式】結合運動，長期維持。</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 癌症提醒
+                if (conditions.includes('癌症') || conditions.includes('肿瘤') || conditions.includes('癌')) {
+                    alertsHtml += `
+                        <div class="alert-item warning">
+                            <div class="alert-icon">🎗️</div>
+                            <div class="alert-content">
+                                <div class="alert-title">癌症專業營養支持</div>
+                                <div class="alert-description">【抗氧化】多樣化蔬果、十字花科蔬菜。【限制】加工肉類、紅肉、酒精。【增強】免疫支持食物、優質蛋白質。【維持】體重穩定，營養充足。</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 血脂异常提醒
+                if (conditions.includes('血脂') || conditions.includes('胆固醇') || conditions.includes('高脂血症')) {
+                    alertsHtml += `
+                        <div class="alert-item warning">
+                            <div class="alert-icon">🧪</div>
+                            <div class="alert-content">
+                                <div class="alert-title">血脂異常專業調理</div>
+                                <div class="alert-description">【減少】飽和脂肪、反式脂肪。【增加】不飽和脂肪酸、燕麥β-葡聚糖。【選擇】豆類製品、堅果、深海魚。【控制】精製糖，維持理想體重。</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 營養不良提醒
+                if (conditions.includes('營養不良') || conditions.includes('營養缺乏') || conditions.includes('消瘦')) {
+                    alertsHtml += `
+                        <div class="alert-item warning">
+                            <div class="alert-icon">📈</div>
+                            <div class="alert-content">
+                                <div class="alert-title">營養不良專業改善</div>
+                                <div class="alert-description">【增加】高質量蛋白質、健康脂肪。【避免】精製碳水化合物、空熱量食物。【補充】維生素礦物質、多樣化營養素。【監測】體重增長、營養狀態。</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 骨質疏鬆提醒
+                if (conditions.includes('骨質疏鬆') || conditions.includes('骨密度') || conditions.includes('缺鈣')) {
+                    alertsHtml += `
+                        <div class="alert-item warning">
+                            <div class="alert-icon">🦴</div>
+                            <div class="alert-content">
+                                <div class="alert-title">骨質疏鬆專業預防</div>
+                                <div class="alert-description">【增加】鈣質來源：乳製品、綠葉蔬菜、芝麻。【補充】維生素D、適量蛋白質。【限制】咖啡因、酒精、高鹽。【結合】負重運動。</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            // 顯示或隱藏健康提醒卡片
+            if (hasAlerts) {
+                healthAlertsContent.innerHTML = alertsHtml;
+                healthAlertsCard.style.display = 'block';
+            } else {
+                healthAlertsCard.style.display = 'none';
+            }
+        }
+
+        // 檢查食物是否含有過敏原
+        function checkFoodAllergies(foodName) {
+            if (!userProfile.allergies || !userProfile.allergies.trim()) {
+                return null; // 沒有過敏原資訊
+            }
+            
+            const allergiesList = userProfile.allergies.split(/[,，、\n]/).map(item => item.trim().toLowerCase()).filter(item => item);
+            const foodNameLower = foodName.toLowerCase();
+            
+            for (let allergy of allergiesList) {
+                if (foodNameLower.includes(allergy) || allergy.includes(foodNameLower)) {
+                    return allergy; // 發現過敏原
+                }
+            }
+            
+            return null; // 未發現過敏原
+        }
+
+        // 更新營養攝取顯示
+        function updateNutritionDisplay() {
+            const consumed = todayFood.reduce((total, food) => ({
+                calories: total.calories + food.calories,
+                protein: total.protein + food.protein,
+                carbs: total.carbs + food.carbs,
+                fat: total.fat + food.fat
+            }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+            
+            document.getElementById('calories-consumed').textContent = consumed.calories;
+            document.getElementById('protein-consumed').textContent = consumed.protein.toFixed(1) + 'g';
+            document.getElementById('carbs-consumed').textContent = consumed.carbs.toFixed(1) + 'g';
+            document.getElementById('fat-consumed').textContent = consumed.fat.toFixed(1) + 'g';
+            
+            // 更新進度環
+            if (nutritionGoals.calories) {
+                const percentage = Math.min(100, Math.round(consumed.calories / nutritionGoals.calories * 100));
+                const circumference = 2 * Math.PI * 30;
+                const offset = circumference - (percentage / 100 * circumference);
+                
+                document.getElementById('calorie-progress').style.strokeDashoffset = offset;
+                document.getElementById('calorie-text').textContent = percentage + '%';
+            }
+        }
+
+        // 傳送訊息給AI助理
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage('user', message);
+            input.value = '';
+            
+            // 智能檢測是否是食譜生成請求
+            if (isMenuGenerationRequest(message)) {
+                // 如果檢測到食譜生成關鍵詞，自動觸發食譜生成
+                addMessage('ai', '🤖 已收到您的食譜生成請求！\n\n📋 正在啟動食譜生成功能...\n\n✅ 請查看下方的【我的一週食譜】模組查看生成結果。');
+                
+                // 確保立即觸發食譜生成
+                console.log('🎯 [CHAT-TRIGGER] 從聊天觸發食譜生成');
+                generateWeeklyMenu();
+                return;
+            }
+            
+            // 構建普通營養諮詢的prompt
+            const contextPrompt = buildNutritionConsultationPrompt(message);
+            
+            // 傳送聊天請求
+            ws.send(JSON.stringify({ 
+                prompt: contextPrompt,
+                requestType: 'chat' // 明確標識為聊天請求
+            }));
+        }
+
+        // 檢測是否是食譜生成請求
+        function isMenuGenerationRequest(message) {
+            const menuKeywords = [
+                // 繁體中文 - 直接生成相關
+                '生成食譜', '製定食譜', '做個食譜', '給個食譜', '來個食譜',
+                '一週食譜', '七天食譜', '週食譜', '7天食譜',
+                
+                // 繁體中文 - 計畫安排相關
+                '食譜計畫', '飲食計畫', '膳食計畫', '營養計畫', '減肥計畫',
+                '一週飲食', '七天飲食', '一週菜單', '七天菜單', '7天菜單',
+                '製定菜單', '生成菜單', '週菜單', '食譜安排',
+                '飲食安排', '膳食安排', '一週餐單', '七天餐單',
+                
+                // 繁體中文 - 請求協助相關
+                '幫我安排一週', '給我製定一週', '為我規劃一週', '幫我做一週',
+                '幫我規劃飲食', '幫我安排飲食', '為我安排飲食', '給我安排飲食',
+                
+                // 繁體中文 - 減肥/健身相關
+                '減肥食譜', '健身食譜', '增肌食譜', '瘦身食譜',
+                '減脂餐', '健身餐', '增肌餐', '減肥餐',
+                
+                // 繁體中文 - 週期性描述
+                '一週吃什麼', '七天吃什麼', '這週吃什麼', '下週吃什麼',
+                '一星期吃什麼', '這星期吃什麼',
+                
+                // 繁體中文 - 兼容簡體輸入
+                '生成食譜', '制定食譜', '做個食譜', '給個食譜', '來個食譜',
+                '一週食譜', '七天食譜', '週食譜', '7天食譜',
+                '食譜計劃', '飲食計劃', '膳食計劃', '營養計劃', '減肥計劃',
+                '一週飲食', '七天飲食', '一週菜單', '七天菜單', '7天菜單',
+                '制定菜單', '生成菜單', '週菜單', '食譜安排',
+                '飲食安排', '膳食安排', '一週餐單', '七天餐單',
+                '幫我安排一週', '給我制定一週', '為我規劃一週', '幫我做一週',
+                '幫我規劃飲食', '幫我安排飲食', '為我安排飲食', '給我安排飲食',
+                '減肥食譜', '健身食譜', '增肌食譜', '瘦身食譜',
+                '減脂餐', '健身餐', '增肌餐', '減肥餐',
+                '一週吃什麼', '七天吃什麼', '這週吃什麼', '下週吃什麼',
+                '一星期吃什麼', '這星期吃什麼'
+            ];
+            
+            const lowerMessage = message.toLowerCase().replace(/\s+/g, ''); // 移除空格進行匹配
+            return menuKeywords.some(keyword => lowerMessage.includes(keyword.replace(/\s+/g, '')));
+        }
+
+        // 構建營養諮詢的prompt（不包含食譜生成指令）
+        function buildNutritionConsultationPrompt(userMessage) {
+            let context = `你是專業的AI營養師助理，專門為使用者提供營養諮詢和健康飲食建議。請針對使用者的具體問題給出簡潔、專業的回答。
+
+【重要語言要求】請使用繁體中文回答，並使用台灣的食物用詞（例如：番茄而非西紅柿、紅蘿蔔而非胡蘿蔔、馬鈴薯而非土豆等）。
+
+【重要】你只需要回答使用者的具體問題，不要主動生成完整的食譜或一週飲食計畫，除非使用者明確要求。`;
+            
+            // 新增使用者背景資訊（如果有）
+            if (Object.keys(userProfile).length > 0) {
+                context += `\n\n【使用者背景】\n年齡：${userProfile.age}歲\n性別：${userProfile.gender === 'male' ? '男' : '女'}\n身高：${userProfile.height}cm\n體重：${userProfile.weight}kg`;
+                
+                // 新增健康資訊
+                if (userProfile.medicalConditions && userProfile.medicalConditions.trim()) {
+                    context += `\n特殊疾病：${userProfile.medicalConditions}`;
+                }
+                if (userProfile.allergies && userProfile.allergies.trim()) {
+                    context += `\n過敏原：${userProfile.allergies}`;
+                }
+            }
+            
+            // 新增今日攝取資訊（如果問題相關）
+            if (todayFood.length > 0 && (userMessage.includes('今天') || userMessage.includes('營養') || userMessage.includes('夠') || userMessage.includes('攝取'))) {
+                const consumed = todayFood.reduce((total, food) => ({
+                    calories: total.calories + food.calories,
+                    protein: total.protein + food.protein,
+                    carbs: total.carbs + food.carbs,
+                    fat: total.fat + food.fat
+                }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+                
+                context += `\n\n【今日攝取情況】\n已攝取：${consumed.calories}卡，蛋白質${consumed.protein.toFixed(1)}g，碳水${consumed.carbs.toFixed(1)}g，脂肪${consumed.fat.toFixed(1)}g\n目標：${nutritionGoals.calories}卡，蛋白質${nutritionGoals.protein}g，碳水${nutritionGoals.carbs}g，脂肪${nutritionGoals.fat}g`;
+            }
+            
+            context += `\n\n【使用者問題】"${userMessage}"
+
+【回答要求】
+1. 針對使用者的具體問題進行專業回答
+2. 如果涉及食物推薦，可以建議1-3樣具體食物，但不要制定完整餐單
+3. 使用簡潔的文字，避免過長的回答
+4. 重要資訊用【】標記，如【建議】【注意】【避免】
+5. 嚴格遵循使用者的健康狀況和過敏資訊
+6. 如果使用者想要完整的食譜計畫，請提醒使用者點擊"生成專屬一週食譜"按鈕
+7. 必須使用繁體中文和台灣食物用詞回答
+
+請回答：`;
+            
+            return context;
+        }
+
+        // 智能文本格式化函数
+        function markdownToHtml(text) {
+            if (!text) return '';
+            
+            // 第一步：彻底清理所有乱码符号
+            let cleanText = text
+                // 移除所有markdown符号
+                .replace(/\*{1,10}/g, '') // 移除所有星号
+                .replace(/#{1,10}/g, '') // 移除所有井号
+                .replace(/-{2,10}/g, '') // 移除多个横线
+                .replace(/_{1,10}/g, '') // 移除下划线
+                .replace(/`{1,10}/g, '') // 移除反引号
+                .replace(/\|/g, '') // 移除竖线
+                .replace(/\^/g, '') // 移除尖号
+                .replace(/~/g, '') // 移除波浪号
+                // 移除多余空格和换行
+                .replace(/\s+/g, ' ') // 多个空格变成单个空格
+                .trim();
+            
+            // 第二步：智能识别和分段
+            let html = cleanText;
+            
+            // 识别餐次并自动分段美化
+            html = html
+                .replace(/(早餐[：:]?)/gi, '<div class="meal-section"><h3 class="meal-title">🌅 早餐</h3><div class="meal-content">')
+                .replace(/(午餐[：:]?)/gi, '</div></div><div class="meal-section"><h3 class="meal-title">🌞 午餐</h3><div class="meal-content">')
+                .replace(/(晚餐[：:]?)/gi, '</div></div><div class="meal-section"><h3 class="meal-title">🌙 晚餐</h3><div class="meal-content">')
+                .replace(/(宵夜[：:]?)/gi, '</div></div><div class="meal-section"><h3 class="meal-title">🌜 宵夜</h3><div class="meal-content">');
+            
+            // 识别星期并美化
+            html = html
+                .replace(/(周[一二三四五六日天末]|星期[一二三四五六日天]|礼拜[一二三四五六日天])/gi, '<h2 class="day-title">📅 $1</h2>')
+                .replace(/(周1|周2|周3|周4|周5|周6|周7)/gi, '<h2 class="day-title">📅 $1</h2>');
+            
+            // 处理【】标签
+            html = html.replace(/【(.*?)】/g, '<span class="highlight-tag">$1</span>');
+            
+                            // 處理營養成分（數字+單位）
+            html = html.replace(/(\d+)(g|克|卡|大卡|毫克|mg|ml|毫升)/gi, '<span class="nutrition-value">$1$2</span>');
+            
+            // 处理表情符号
+            html = html.replace(/(📊|🎯|💡|⚠️|🩺|❤️|💓|🦴|🫘|🩸|⚖️|🎗️|🧪|📈|🌅|🌞|🌙|🌜|📅)/g, '<span class="emoji-highlight">$1</span>');
+            
+            // 处理食物分隔（+ 号分隔的食物）
+            html = html.replace(/\s*\+\s*/g, '<span class="food-separator"> + </span>');
+            
+                            // 處理建議清單（以破折號或點開頭的行）
+            html = html.replace(/^[•\-\*]\s*(.+)$/gm, '<li class="advice-item">$1</li>');
+            
+                            // 包裝建議清單
+            if (html.includes('<li class="advice-item">')) {
+                html = html.replace(/(<li class="advice-item">.*<\/li>)/gs, '<ul class="advice-list">$1</ul>');
+            }
+            
+            // 自动分段（根据句号）
+            if (!html.includes('<div class="meal-section">') && !html.includes('<h2>') && !html.includes('<ul>')) {
+                html = html.replace(/([。！？])\s*/g, '$1</p><p class="auto-paragraph">');
+                html = '<p class="auto-paragraph">' + html + '</p>';
+                // 清理空段落
+                html = html.replace(/<p class="auto-paragraph">\s*<\/p>/g, '');
+            }
+            
+            // 结束未闭合的餐次容器
+            if (html.includes('<div class="meal-content">') && !html.includes('</div></div>')) {
+                html += '</div></div>';
+            }
+            
+            return html;
+        }
+
+        // 添加聊天消息
+        function addMessage(sender, text) {
+            // 🛡️ 食譜生成保護：阻止任何內容進入聊天框
+            if (isGeneratingMenu && sender === 'ai') {
+                console.log('🚫 [PROTECT] 食譜生成中，阻止AI訊息進入聊天框:', text.substring(0, 50));
+                return;
+            }
+            
+            const messagesContainer = document.getElementById('chat-messages');
+            const message = document.createElement('div');
+            message.className = `message ${sender}`;
+            
+            if (sender === 'ai') {
+                message.innerHTML = markdownToHtml(text);
+            } else {
+                message.textContent = text;
+            }
+            
+            messagesContainer.appendChild(message);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            console.log('💬 [CHAT] 已添加聊天訊息:', sender, text.substring(0, 50));
+        }
+
+        // 追加到最后一条消息
+        function appendToLastMessage(text) {
+            // 🛡️ 食譜生成保護：阻止任何內容進入聊天框
+            if (isGeneratingMenu) {
+                console.log('🚫 [PROTECT] 食譜生成中，阻止內容追加到聊天框:', text.substring(0, 50));
+                return;
+            }
+            
+            const messages = document.querySelectorAll('#chat-messages .message');
+            if (messages.length > 0) {
+                const lastMessage = messages[messages.length - 1];
+                
+                if (lastMessage.classList.contains('ai')) {
+                    // 对于AI消息，累积文本然后重新渲染
+                    const currentText = lastMessage.getAttribute('data-raw-text') || '';
+                    const newText = currentText + text;
+                    lastMessage.setAttribute('data-raw-text', newText);
+                    lastMessage.innerHTML = markdownToHtml(newText);
+                } else {
+                    lastMessage.textContent += text;
+                }
+                
+                document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+            }
+            
+            console.log('💬 [CHAT] 已追加聊天內容:', text.substring(0, 50));
+        }
+
+        // 禁用聊天输入
+        function disableChatInput() {
+            document.getElementById('chat-input').disabled = true;
+        }
+
+        // 启用聊天输入
+        function enableChatInput() {
+            document.getElementById('chat-input').disabled = false;
+        }
+
+        // 更新個人化建議 (智能判斷是否有飲食記錄)
+        async function updateRecommendations() {
+            const recommendations = document.getElementById('recommendations');
+            
+            // 如果沒有填寫個人資訊
+            if (Object.keys(userProfile).length === 0) {
+                recommendations.innerHTML = '<h4>💡 開始使用</h4><div class="recommendation-item">👋 歡迎使用智慧飲食助理！請先填寫您的個人資訊以獲得個人化建議。</div>';
+                return;
+            }
+            
+            // 如果填寫了個人資訊但還沒有飲食記錄
+            if (todayFood.length === 0) {
+                let html = '<h4>💡 今日建議</h4>';
+                
+                // 給出基於使用者資料的一般建議，不涉及具體營養攝取分析
+                const bmi = userProfile.bmi || userProfile.weight / Math.pow(userProfile.height / 100, 2);
+                
+                html += '<div class="recommendation-item">📝 請開始記錄您今天的飲食，我將為您提供專業的營養分析！</div>';
+                
+                // 基於BMI的一般健康建議
+                if (bmi < 18.5) {
+                    html += '<div class="recommendation-item">📊 您的BMI為 ' + bmi.toFixed(1) + '，屬於偏瘦，建議關注營養均衡。</div>';
+                } else if (bmi > 25) {
+                    html += '<div class="recommendation-item">📊 您的BMI為 ' + bmi.toFixed(1) + '，建議控制熱量並增加運動。</div>';
+                } else {
+                    html += '<div class="recommendation-item">📊 您的BMI為 ' + bmi.toFixed(1) + '，屬於正常範圍，保持良好習慣！</div>';
+                }
+                
+                html += `<div class="recommendation-item">🎯 您的每日營養目標：${nutritionGoals.calories}卡路里，蛋白質${nutritionGoals.protein}g</div>`;
+                html += '<div class="recommendation-item">💧 別忘了每天喝足夠的水，建議8-10杯。</div>';
+                
+                recommendations.innerHTML = html;
+                return;
+            }
+            
+            // 有飲食記錄時，進行詳細的營養分析
+            try {
+                // 計算當前營養攝取
+                const consumed = todayFood.reduce((total, food) => ({
+                    calories: total.calories + food.calories,
+                    protein: total.protein + food.protein,
+                    carbs: total.carbs + food.carbs,
+                    fat: total.fat + food.fat
+                }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+                
+                const response = await fetch('/api/recommendations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userProfile: userProfile,
+                        consumedNutrition: consumed,
+                        nutritionGoals: nutritionGoals
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    let html = '<h4>💡 營養建議</h4>';
+                    
+                    data.recommendations.forEach(rec => {
+                        const priorityIcon = rec.priority === 'high' ? '🔴' : 
+                                           rec.priority === 'medium' ? '🟡' : '🟢';
+                        html += `<div class="recommendation-item">${priorityIcon} ${rec.message}</div>`;
+                    });
+                    
+                    recommendations.innerHTML = html;
+                    return;
+                }
+            } catch (error) {
+                console.error('獲取建議失敗:', error);
+            }
+            
+            // API失敗時的本地分析
+            const consumed = todayFood.reduce((total, food) => ({
+                calories: total.calories + food.calories,
+                protein: total.protein + food.protein,
+                carbs: total.carbs + food.carbs,
+                fat: total.fat + food.fat
+            }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+            
+            let html = '<h4>💡 營養建議</h4>';
+            
+            // 基於實際攝取的分析
+            const calorieRatio = consumed.calories / nutritionGoals.calories;
+            const proteinRatio = consumed.protein / nutritionGoals.protein;
+            
+            if (calorieRatio < 0.5) {
+                html += '<div class="recommendation-item">🔴 今日熱量攝取嚴重不足，請適量增加健康食物。</div>';
+            } else if (calorieRatio < 0.8) {
+                html += '<div class="recommendation-item">🟡 今日熱量攝取偏低，建議再增加一些營養食物。</div>';
+            } else if (calorieRatio > 1.2) {
+                html += '<div class="recommendation-item">🟡 今日熱量攝取較高，明天注意控制飲食。</div>';
+            } else {
+                html += '<div class="recommendation-item">🟢 今日熱量攝取適中，很好！</div>';
+            }
+            
+            if (proteinRatio < 0.8) {
+                html += '<div class="recommendation-item">🟡 蛋白質攝取不足，建議增加雞蛋、雞胸肉、魚類等。</div>';
+            } else {
+                html += '<div class="recommendation-item">🟢 蛋白質攝取充足，繼續保持！</div>';
+            }
+            
+            html += '<div class="recommendation-item">💧 繼續保持充足的水分攝取。</div>';
+            
+            recommendations.innerHTML = html;
+        }
+
+        // 鍵盤事件
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 食物搜索功能
+        let searchTimeout;
+        const foodNameInput = document.getElementById('food-name');
+        const foodSuggestions = document.getElementById('food-suggestions');
+
+        foodNameInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 1) {
+                foodSuggestions.style.display = 'none';
+                return;
+            }
+            
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/food/search/${encodeURIComponent(query)}`);
+                    const data = await response.json();
+                    
+                    if (data.success && data.results.length > 0) {
+                        let html = '';
+                        data.results.forEach(food => {
+                            html += `<div style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee;" 
+                                          onmouseover="this.style.backgroundColor='#f0f0f0'" 
+                                          onmouseout="this.style.backgroundColor='white'"
+                                          onclick="selectFood('${food.name}')">${food.name} 
+                                          <span style="color: #666; font-size: 0.9em;">(${food.nutrition.calories}卡/100g)</span></div>`;
+                        });
+                        foodSuggestions.innerHTML = html;
+                        foodSuggestions.style.display = 'block';
+                    } else {
+                        foodSuggestions.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('搜索食物失败:', error);
+                    foodSuggestions.style.display = 'none';
+                }
+            }, 300);
+        });
+
+        // 选择食物
+        function selectFood(foodName) {
+            document.getElementById('food-name').value = foodName;
+            document.getElementById('food-suggestions').style.display = 'none';
+            document.getElementById('food-amount').focus();
+        }
+
+                    // 點擊其他地方隱藏建議
+        document.addEventListener('click', function(e) {
+            if (!foodNameInput.contains(e.target) && !foodSuggestions.contains(e.target)) {
+                foodSuggestions.style.display = 'none';
+            }
+        });
+
+        // AI助手气泡控制
+        let bubbleVisible = false;
+        function toggleAssistantBubble() {
+            const bubble = document.getElementById('assistantBubble');
+            bubbleVisible = !bubbleVisible;
+            bubble.style.display = bubbleVisible ? 'block' : 'none';
+            
+            // 自动隐藏
+            if (bubbleVisible) {
+                setTimeout(() => {
+                    bubble.style.display = 'none';
+                    bubbleVisible = false;
+                }, 5000);
+            }
+        }
+
+        // 生成一週食譜
+        async function generateWeeklyMenu() {
+            const dietGoal = document.getElementById('diet-goal').value;
+            const cuisinePreference = document.getElementById('cuisine-preference').value;
+            const dislikeFoods = document.getElementById('dislike-foods').value.trim();
+            const budgetRange = document.getElementById('budget-range').value;
+            
+            pageLog('🔍 [DEBUG] 開始生成食譜，檢查參數');
+            pageLog('📊 [DEBUG] 飲食目標: ' + dietGoal);
+            pageLog('🍽️ [DEBUG] 飲食偏好: ' + cuisinePreference);
+            pageLog('🚫 [DEBUG] 不喜歡的食物: ' + dislikeFoods);
+            pageLog('💰 [DEBUG] 預算範圍: ' + budgetRange);
+            pageLog('👤 [DEBUG] 用戶資料: ' + JSON.stringify(userProfile));
+            pageLog('🎯 [DEBUG] 營養目標: ' + JSON.stringify(nutritionGoals));
+            
+            // 如果沒有設置飲食目標，使用預設值
+            if (!dietGoal) {
+                document.getElementById('diet-goal').value = 'maintenance';
+                pageLog('⚠️ [DEBUG] 使用默認飲食目標: maintenance');
+            }
+            
+            // 检查是否已有食谱
+            if (weeklyMenu && weeklyMenu.content) {
+                pageLog('ℹ️ [DEBUG] 已有食譜，提示用戶');
+                addMessage('ai', '您已經有一個食譜計畫了！如果想生成新的食譜，請先點擊"刪除目前食譜"按鈕刪除目前食譜。');
+                return;
+            }
+            
+            // 详细检查用户资料完整性
+            pageLog('🔍 [DEBUG] 檢查用戶資料完整性...');
+            const requiredFields = ['age', 'height', 'weight', 'gender', 'activity'];
+            const missingFields = requiredFields.filter(field => !userProfile[field]);
+            
+            if (Object.keys(userProfile).length === 0 || missingFields.length > 0) {
+                pageLog('❌ [DEBUG] 用戶資料不完整，缺少: ' + missingFields.join(', '));
+                const weeklyMenuDiv = document.getElementById('weekly-menu-table');
+                weeklyMenuDiv.innerHTML = `
+                    <div class="empty-menu-table">
+                        📝 請先完善您的個人信息<br>
+                        <small style="color: #666; margin-top: 8px; display: block;">
+                            缺少：${missingFields.length > 0 ? missingFields.join('、') : '基本資料'}<br>
+                            請填寫年齡、身高、體重、性別、活動水平後重試
+                        </small>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 檢查營養目標
+            if (!nutritionGoals || !nutritionGoals.calories) {
+                pageLog('❌ [DEBUG] 營養目標未計算');
+                const weeklyMenuDiv = document.getElementById('weekly-menu-table');
+                weeklyMenuDiv.innerHTML = `
+                    <div class="empty-menu-table">
+                        ⚠️ 營養目標計算異常<br>
+                        <small style="color: #666; margin-top: 8px; display: block;">
+                            請重新保存個人信息或刷新頁面重試
+                        </small>
+                    </div>
+                `;
+                return;
+            }
+            
+            pageLog('✅ [DEBUG] 所有檢查通過，開始生成食譜');
+            
+            // 顯示載入狀態
+            const weeklyMenuDiv = document.getElementById('weekly-menu-table');
+            weeklyMenuDiv.innerHTML = `
+                <div class="generating-menu">
+                    <div class="spinner"></div>
+                    <div>🤖 AI正在為您精心制定一週食譜...</div>
+                    <div style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;">
+                        ⏱️ 根據您的健康狀況和飲食偏好客製化中<br>
+                        📋 生成的食譜將顯示在下方表格中
+                    </div>
+                </div>
+            `;
+            
+            // 停用生成按鈕
+            document.getElementById('generate-menu-btn').disabled = true;
+            document.getElementById('generate-menu-btn').textContent = '生成中...';
+            
+            // 構建食譜生成的prompt
+            const menuPrompt = buildMenuPrompt(dietGoal, cuisinePreference, dislikeFoods, budgetRange);
+            
+            try {
+                // 🛡️ 強制設置食譜生成模式，完全阻斷聊天
+                pageLog('🚀 [GENERATE] 啟動食譜生成模式');
+                isGeneratingMenu = true;
+                currentMenuText = '';
+                
+                // 📤 發送食譜生成請求
+                pageLog('📤 [GENERATE] 發送WebSocket請求，requestType: weekly-menu');
+                pageLog('📝 [GENERATE] Prompt長度: ' + menuPrompt.length);
+                pageLog('📄 [GENERATE] Prompt內容預覽: ' + menuPrompt.substring(0, 200) + '...');
+                
+                // 🔍 檢查WebSocket連接狀態
+                if (ws.readyState !== WebSocket.OPEN) {
+                    pageLog('❌ [GENERATE] WebSocket未連接，當前狀態: ' + ws.readyState);
+                    const statusMap = {
+                        0: 'CONNECTING',
+                        1: 'OPEN', 
+                        2: 'CLOSING',
+                        3: 'CLOSED'
+                    };
+                    throw new Error(`WebSocket連接異常（${statusMap[ws.readyState] || ws.readyState}），請刷新頁面重試`);
+                }
+                
+                const requestData = { 
+                    prompt: menuPrompt, 
+                    requestType: 'weekly-menu'
+                };
+                
+                pageLog('📨 [GENERATE] 準備發送的請求數據: promptLength=' + requestData.prompt.length + ', requestType=' + requestData.requestType + ', wsState=' + ws.readyState);
+                
+                ws.send(JSON.stringify(requestData));
+                
+                pageLog('✅ [GENERATE] 食譜請求已發送，等待回應...');
+                
+                // ⏰ 設置超時保護（60秒）
+                const timeoutId = setTimeout(() => {
+                    if (isGeneratingMenu) {
+                        pageLog('⚠️ [TIMEOUT] 食譜生成超時（60秒），重置狀態');
+                        isGeneratingMenu = false;
+                        weeklyMenuDiv.innerHTML = `
+                            <div class="empty-menu-table">
+                                ⏰ 食譜生成超時<br>
+                                <small style="color: #666; margin-top: 8px; display: block;">
+                                    等待時間超過60秒，可能原因：<br>
+                                    • 服務器無回應<br>
+                                    • 網路連接問題<br>
+                                    • AI服務異常<br>
+                                    <br>
+                                    建議刷新頁面重試
+                                </small>
+                                <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                    🔄 刷新頁面
+                                </button>
+                            </div>
+                        `;
+                        resetMenuButtons();
+                    }
+                }, 60000); // 60秒超時
+                
+                pageLog('⏰ [TIMEOUT] 設置60秒超時保護');
+                
+            } catch (error) {
+                console.error('❌ [GENERATE] 生成食譜失敗:', error);
+                
+                // 🔄 嘗試備用方案：簡化版食譜生成
+                pageLog('🔄 [FALLBACK] 嘗試使用簡化版食譜生成...');
+                try {
+                    const simplePrompt = buildSimpleMenuPrompt();
+                    pageLog('📤 [FALLBACK] 發送簡化版請求');
+                    
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ 
+                            prompt: simplePrompt, 
+                            requestType: 'weekly-menu'
+                        }));
+                        pageLog('✅ [FALLBACK] 簡化版請求已發送');
+                        return; // 不要重置狀態，等待回應
+                    }
+                } catch (fallbackError) {
+                    pageLog('❌ [FALLBACK] 備用方案也失敗: ' + fallbackError);
+                }
+                
+                // 所有方案都失敗，重置狀態並顯示錯誤
+                isGeneratingMenu = false;
+                weeklyMenuDiv.innerHTML = `
+                    <div class="empty-menu-table">
+                        ❌ 食譜生成失敗<br>
+                        <small style="color: #666; margin-top: 8px; display: block;">
+                            錯誤：${error.message}<br>
+                            <br>
+                            🔧 <strong>解決方案：</strong><br>
+                            1. 檢查是否已填寫完整個人信息<br>
+                            2. 刷新頁面重試（Ctrl + F5）<br>
+                            3. 檢查網路連接狀態<br>
+                            4. 稍後再試
+                        </small>
+                        <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            🔄 刷新頁面
+                        </button>
+                    </div>
+                `;
+                resetMenuButtons();
+            }
+        }
+
+        // 構建食譜生成的prompt
+        function buildMenuPrompt(dietGoal, cuisinePreference, dislikeFoods, budgetRange) {
+            pageLog('🔧 [PROMPT] 開始構建食譜生成Prompt');
+            
+            // 安全獲取用戶資料，避免undefined錯誤
+            const age = userProfile.age || 25;
+            const gender = userProfile.gender || 'male';
+            const height = userProfile.height || 170;
+            const weight = userProfile.weight || 65;
+            const activity = userProfile.activity || 'moderate';
+            const calories = nutritionGoals?.calories || 1800;
+            const protein = nutritionGoals?.protein || 90;
+            
+            pageLog('📊 [PROMPT] 使用的資料: age=' + age + ', gender=' + gender + ', height=' + height + ', weight=' + weight + ', activity=' + activity + ', calories=' + calories + ', protein=' + protein);
+            
+            let context = `你是專業營養師，請為使用者制定一週完整的三餐食譜計畫。
+
+【重要】請使用繁體中文回答，並使用台灣的食物用詞（例如：番茄而非西紅柿、紅蘿蔔而非胡蘿蔔、馬鈴薯而非土豆等）。
+
+【使用者資訊】
+年齡：${age}歲
+性別：${gender === 'male' ? '男' : '女'}
+身高：${height}cm
+體重：${weight}kg
+活動水平：${getActivityLabel(activity)}
+每日營養目標：${calories}卡路里，蛋白質${protein}g
+
+【健康狀況】`;
+
+            if (userProfile.medicalConditions && userProfile.medicalConditions.trim()) {
+                context += `\n特殊疾病：${userProfile.medicalConditions}`;
+            }
+            if (userProfile.allergies && userProfile.allergies.trim()) {
+                context += `\n過敏原：${userProfile.allergies}`;
+            }
+
+            context += `\n
+【飲食要求】
+目標：${getDietGoalLabel(dietGoal)}
+飲食偏好：${getCuisineLabel(cuisinePreference)}
+預算範圍：${getBudgetLabel(budgetRange)}`;
+
+            if (dislikeFoods) {
+                context += `\n不喜歡的食物：${dislikeFoods}`;
+            }
+
+            context += `\n
+【格式要求】
+請按以下格式提供一週食譜：
+
+週一 總計約1800卡
+早餐：燕麥粥 + 水煮蛋 + 牛奶 (約400卡，蛋白質18g)
+午餐：雞胸肉沙拉 + 全麥麵包 + 蘋果 (約600卡，蛋白質35g)  
+晚餐：清蒸魚 + 蒸蛋 + 青菜 (約500卡，蛋白質30g)
+
+【重要要求】
+1. 嚴格避免使用者過敏的食物
+2. 根據特殊疾病調整食譜（如糖尿病避免高糖，高血壓少鹽等）
+3. 每日營養均衡，滿足目標需求
+4. 食物搭配多樣化，避免重複
+5. 考慮預算限制，推薦性價比高的食材
+6. 提供具體的食物分量和營養估算
+7. 每天安排不同口味，保持飲食趣味性
+8. 使用台灣常見的食材和料理方式
+9. 必須使用繁體中文和台灣用詞
+
+請開始制定一週食譜：`;
+
+            pageLog('✅ [PROMPT] Prompt構建完成，總長度: ' + context.length);
+            pageLog('📄 [PROMPT] Prompt預覽: ' + context.substring(0, 200) + '...');
+            
+            return context;
+        }
+        
+        // 簡化版食譜生成（備用方案）
+        function buildSimpleMenuPrompt() {
+            pageLog('🔄 [FALLBACK] 使用簡化Prompt');
+            return `【重要】請使用繁體中文回答，並使用台灣的食物用詞（例如：番茄而非西紅柿、紅蘿蔔而非胡蘿蔔、馬鈴薯而非土豆等）。
+
+請為一個成年人制定一週健康食譜，包含早餐、午餐、晚餐。
+
+格式要求：
+週一 總計約1800卡
+早餐：食物1 + 食物2 (約400卡)
+午餐：食物1 + 食物2 (約700卡)
+晚餐：食物1 + 食物2 (約500卡)
+
+請使用台灣常見食材，提供一週7天的完整食譜，務必使用繁體中文。`;
+        }
+
+        // 取得活動水平標籤
+        function getActivityLabel(activity) {
+            const labels = {
+                'sedentary': '久坐少動',
+                'light': '輕度活動',
+                'moderate': '中度活動',
+                'high': '高強度活動',
+                'very_high': '極高強度活動'
+            };
+            return labels[activity] || activity;
+        }
+
+        // 取得飲食目標標籤
+        function getDietGoalLabel(goal) {
+            const labels = {
+                'weight-loss': '減脂瘦身',
+                'weight-gain': '增重增肌',
+                'maintenance': '維持體重',
+                'muscle-gain': '增肌塑形',
+                'health-recovery': '疾病調理'
+            };
+            return labels[goal] || goal;
+        }
+
+        // 取得飲食偏好標籤
+        function getCuisineLabel(cuisine) {
+            const labels = {
+                'balanced': '均衡飲食',
+                'chinese': '中式料理',
+                'western': '西式料理',
+                'vegetarian': '素食主義',
+                'mediterranean': '地中海飲食',
+                'ketogenic': '生酮飲食',
+                'low-carb': '低碳飲食'
+            };
+            return labels[cuisine] || cuisine;
+        }
+
+        // 取得預算標籤
+        function getBudgetLabel(budget) {
+            const labels = {
+                'low': '經濟實惠（每日30-50元）',
+                'medium': '中等預算（每日50-100元）',
+                'high': '較高預算（每日100-200元）',
+                'premium': '精緻飲食（每日200元以上）'
+            };
+            return labels[budget] || budget;
+        }
+
+        // 處理一週食譜的WebSocket響應
+        function handleWeeklyMenuResponse(text) {
+            pageLog('🍽️ [HANDLER] 開始處理一週食譜響應，內容長度: ' + text.length);
+            pageLog('📄 [HANDLER] 內容預覽: ' + text.substring(0, 200) + '...');
+            
+            const weeklyMenuDiv = document.getElementById('weekly-menu-table');
+            
+            if (!weeklyMenuDiv) {
+                console.error('❌ 找不到weekly-menu-table元素！');
+                return;
+            }
+            
+            // 確保不為空
+            if (!text || text.trim().length === 0) {
+                console.log('❌ 食譜內容為空');
+                weeklyMenuDiv.innerHTML = `
+                    <div class="empty-menu-table">
+                        ❌ 食譜生成失敗，請重試
+                    </div>
+                `;
+                resetMenuButtons();
+                return;
+            }
+            
+            console.log('📊 開始解析食譜文字為表格格式');
+            
+            // 優先嘗試正常解析，失敗則強制表格生成
+            let formattedTable;
+            try {
+                formattedTable = parseWeeklyMenuToTable(text);
+                // 如果解析結果是簡單文字展示，則改用強制表格生成
+                if (formattedTable.includes('AI生成的一週食譜')) {
+                    pageLog('📊 正常解析返回簡單格式，改用強制表格生成');
+                    formattedTable = forceTableGeneration(text);
+                }
+            } catch (error) {
+                pageLog('❌ 解析失敗，使用強制表格生成: ' + error);
+                formattedTable = forceTableGeneration(text);
+            }
+            
+            console.log('📋 表格生成完成，準備顯示在"我的一週食譜"模組中');
+            
+            // 顯示在一週食譜模組中
+            weeklyMenuDiv.innerHTML = formattedTable;
+            
+            // 保存到本地存储
+            const menuData = {
+                content: text,
+                timestamp: Date.now(),
+                preferences: {
+                    dietGoal: document.getElementById('diet-goal').value,
+                    cuisinePreference: document.getElementById('cuisine-preference').value,
+                    dislikeFoods: document.getElementById('dislike-foods').value,
+                    budgetRange: document.getElementById('budget-range').value
+                }
+            };
+            localStorage.setItem('weeklyMenu', JSON.stringify(menuData));
+            weeklyMenu = menuData;
+            
+            // 更新按钮状态 - 显示成功状态
+            document.getElementById('generate-menu-btn').style.display = 'none';
+            document.getElementById('clear-menu-btn').style.display = 'inline-block';
+            
+            // 添加锁定样式
+            weeklyMenuDiv.classList.add('menu-locked');
+            
+            pageLog('✅ [HANDLER] 一週食譜已成功顯示在"我的一週食譜"模組中！');
+            
+            // 🔓 重要：重置食譜生成狀態，恢復聊天功能
+            isGeneratingMenu = false;
+            pageLog('🔓 [HANDLER] 食譜生成完成，恢復聊天功能');
+            
+            // 滚动到食谱区域，让用户看到结果
+            weeklyMenuDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // 解析一週食譜文字並格式化為表格
+        function parseWeeklyMenuToTable(text) {
+            console.log('🔍 開始解析食譜文字:', text.substring(0, 300) + '...');
+            
+            const days = ['週一', '週二', '週三', '週四', '週五', '週六', '週日'];
+            const meals = ['早餐', '午餐', '晚餐'];
+            
+            // 解析食譜資料
+            const menuData = {};
+            // 支援多種日期格式的分割
+            const daysSplit = text.split(/(?=[週周][一二三四五六日天])/);
+            
+            console.log('📅 分割後的天數:', daysSplit.length);
+            
+            daysSplit.forEach((dayText, index) => {
+                if (!dayText.trim()) {
+                    console.log(`❌ 第${index}天的內容為空`);
+                    return;
+                }
+                
+                console.log(`📝 處理第${index}天:`, dayText.substring(0, 200) + '...');
+                
+                // 更寬鬆的日期匹配模式，支援繁體中文
+                const dayMatch = dayText.match(/([週周][一二三四五六日天]|星期[一二三四五六日天]|禮拜[一二三四五六日天])/);
+                if (!dayMatch) {
+                    console.log(`❌ 第${index}天無法匹配日期:`, dayText.substring(0, 100));
+                    return;
+                }
+                
+                let dayName = dayMatch[1];
+                // 統一轉換為週格式
+                if (dayName.startsWith('周')) {
+                    dayName = dayName.replace('周', '週');
+                }
+                
+                // 更寬鬆的卡路里匹配
+                const calorieMatch = dayText.match(/(\d+)\s*[卡千]?[路里]?[里卡]?/);
+                const totalCalories = calorieMatch ? calorieMatch[1] : '0';
+                
+                console.log(`✅ 找到${dayName}, 總計${totalCalories}卡`);
+                
+                menuData[dayName] = { totalCalories, meals: {} };
+                
+                // 提取三餐資訊 - 更寬鬆的匹配
+                meals.forEach(mealName => {
+                    console.log(`🍽️ 解析${dayName}的${mealName}`);
+                    
+                    // 更寬鬆的三餐匹配模式
+                    const patterns = [
+                        `🍽️\\s*${mealName}[：:]\\s*([^\\n🍽️]+)`,  // 🍽️ 早餐：食物
+                        `${mealName}[：:]\\s*([^\\n🍽️]+)`,        // 早餐：食物
+                        `${mealName}\\s*[：:]?\\s*([^\\n🍽️]+)`,   // 寬鬆格式
+                        `${mealName}[：：]\\s*([^\\n🍽️]*)`        // 處理中文冒號
+                    ];
+                    
+                    let mealMatch = null;
+                    let mealContent = '';
+                    
+                    for (let pattern of patterns) {
+                        const regex = new RegExp(pattern, 'i');
+                        mealMatch = dayText.match(regex);
+                        if (mealMatch) {
+                            mealContent = mealMatch[1].trim();
+                            console.log(`✅ ${mealName}匹配成功:`, mealContent.substring(0, 50));
+                            break;
+                        }
+                    }
+                    
+                    if (mealContent) {
+                        // 提取營養資訊 - 更寬鬆的匹配
+                        const nutritionPatterns = [
+                            /\(([^)]*[卡千][^)]*)\)/,          // (約200卡)
+                            /（([^）]*[卡千][^）]*)）/,          // 中文括號
+                            /[約约]?\s*(\d+)\s*[卡千]/,       // 約200卡
+                            /(\d+)\s*大?卡/,                 // 200大卡
+                            /共[約约]\s*(\d+[卡千][^，、]*)/,   // 共約200卡
+                            /\([共約约]*([^)]*[卡千][^)]*)\)/   // (共約200卡，蛋白質20g)
+                        ];
+                        
+                        let nutritionInfo = '';
+                        for (let pattern of nutritionPatterns) {
+                            const nutritionMatch = mealContent.match(pattern);
+                            if (nutritionMatch) {
+                                nutritionInfo = nutritionMatch[1] || nutritionMatch[0];
+                                break;
+                            }
+                        }
+                        
+                        // 移除營養資訊，只保留食物
+                        const foods = mealContent
+                            .replace(/\([^)]*\)/g, '')          // 移除圓括號
+                            .replace(/（[^）]*）/g, '')          // 移除中文括號
+                            .replace(/[約约]?\s*\d+\s*[卡千][路里]?/g, '') // 移除卡路里
+                            .replace(/共[約约]\s*\d+[卡千][^，、]*/g, '')   // 移除共約...卡
+                            .trim();
+                        
+                        menuData[dayName].meals[mealName] = {
+                            foods: foods || '暫無安排',
+                            nutrition: nutritionInfo
+                        };
+                        
+                        console.log(`📝 ${dayName}-${mealName}: 食物="${foods}" 營養="${nutritionInfo}"`);
+                    } else {
+                        console.log(`❌ ${dayName}的${mealName}未找到匹配內容`);
+                        menuData[dayName].meals[mealName] = {
+                            foods: '暫無安排',
+                            nutrition: ''
+                        };
+                    }
+                });
+            });
+            
+            // 生成表格HTML
+            console.log('📊 解析完成，共找到', Object.keys(menuData).length, '天的食譜資料');
+            console.log('📋 食譜資料詳情:', menuData);
+            
+            // 如果正常解析失敗，嘗試強制表格解析
+            if (Object.keys(menuData).length === 0) {
+                console.log('❌ 標準解析失敗，嘗試強制表格解析');
+                return forceTableGeneration(text);
+            }
+            
+            let html = `
+                <table class="menu-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 12%;">日期</th>
+                            <th style="width: 29%;">🌅 早餐</th>
+                            <th style="width: 29%;">🌞 午餐</th>
+                            <th style="width: 29%;">🌙 晚餐</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            days.forEach(day => {
+                if (menuData[day]) {
+                    const dayData = menuData[day];
+                    
+                    html += `<tr>`;
+                    html += `<td class="day-column">${day}</td>`;
+                    
+                    meals.forEach(meal => {
+                        const mealData = dayData.meals[meal] || { foods: '暂无安排', nutrition: '' };
+                        html += `
+                            <td>
+                                <div class="meal-content">
+                                    <div class="meal-foods">${mealData.foods}</div>
+                                    ${mealData.nutrition ? `<div class="meal-nutrition">${mealData.nutrition}</div>` : ''}
+                                </div>
+                            </td>
+                        `;
+                    });
+                    
+                    html += `</tr>`;
+                }
+            });
+            
+            // 新增卡路里總計行 - 只為有資料的天數新增
+            const validDays = Object.keys(menuData).filter(day => days.includes(day));
+            if (validDays.length > 0) {
+                // 為每個有資料的天新增卡路里行
+                validDays.forEach(day => {
+                    html += `<tr class="calories-row">`;
+                    html += `<td><strong>${day}總計</strong></td>`;
+                    html += `<td colspan="3"><strong>約${menuData[day].totalCalories}卡路里</strong></td>`;
+                    html += `</tr>`;
+                });
+            }
+            
+            html += `</tbody></table>`;
+            
+            console.log('✅ 食譜表格HTML生成完成，準備顯示在"我的一週食譜"模組中');
+            
+            return html;
+        }
+
+        // 強制表格生成函數 - 即使解析失敗也要生成表格
+        function forceTableGeneration(text) {
+            console.log('🔧 強制表格生成模式');
+            
+            const days = ['週一', '週二', '週三', '週四', '週五', '週六', '週日'];
+            const meals = ['早餐', '午餐', '晚餐'];
+            
+            // 簡單分割文本
+            const lines = text.split('\n').filter(line => line.trim());
+            
+            let html = `
+                <table class="menu-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 12%;">日期</th>
+                            <th style="width: 29%;">🌅 早餐</th>
+                            <th style="width: 29%;">🌞 午餐</th>
+                            <th style="width: 29%;">🌙 晚餐</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            let currentDay = '';
+            let currentMeals = { '早餐': '', '午餐': '', '晚餐': '' };
+            let totalCalories = '';
+            
+            lines.forEach(line => {
+                // 檢查是否是日期行
+                const dayMatch = line.match(/([週周][一二三四五六日天]|星期[一二三四五六日天])/);
+                if (dayMatch) {
+                    // 保存前一天的資料
+                    if (currentDay) {
+                        html += generateDayRow(currentDay, currentMeals, totalCalories);
+                    }
+                    // 開始新的一天
+                    currentDay = dayMatch[1].replace('周', '週');
+                    currentMeals = { '早餐': '', '午餐': '', '晚餐': '' };
+                    
+                    // 檢查總計卡路里
+                    const calorieMatch = line.match(/(\d+)[卡千]/);
+                    totalCalories = calorieMatch ? calorieMatch[1] : '';
+                    return;
+                }
+                
+                // 檢查是否是餐次行
+                meals.forEach(meal => {
+                    const mealPattern = new RegExp(`🍽️?\\s*${meal}[：:]\\s*(.+)`);
+                    const mealMatch = line.match(mealPattern);
+                    if (mealMatch) {
+                        let foodContent = mealMatch[1];
+                        // 移除營養資訊括號
+                        foodContent = foodContent.replace(/\([^)]*\)/g, '').replace(/（[^）]*）/g, '').trim();
+                        currentMeals[meal] = foodContent;
+                    }
+                });
+            });
+            
+            // 處理最後一天
+            if (currentDay) {
+                html += generateDayRow(currentDay, currentMeals, totalCalories);
+            }
+            
+            // 如果沒有找到任何日期，創建一個基本表格
+            if (!currentDay) {
+                console.log('⚠️ 未找到日期格式，創建基本表格');
+                html += `<tr>`;
+                html += `<td class="day-column">週一</td>`;
+                html += `<td><div class="meal-content"><div class="meal-foods">請重新生成食譜</div></div></td>`;
+                html += `<td><div class="meal-content"><div class="meal-foods">請重新生成食譜</div></div></td>`;
+                html += `<td><div class="meal-content"><div class="meal-foods">請重新生成食譜</div></div></td>`;
+                html += `</tr>`;
+            }
+            
+            html += `</tbody></table>`;
+            
+            console.log('✅ 強制表格生成完成');
+            return html;
+        }
+        
+        // 生成單日表格行
+        function generateDayRow(day, meals, calories) {
+            let html = `<tr>`;
+            html += `<td class="day-column">${day}</td>`;
+            
+            ['早餐', '午餐', '晚餐'].forEach(mealName => {
+                const mealContent = meals[mealName] || '暫無安排';
+                html += `
+                    <td>
+                        <div class="meal-content">
+                            <div class="meal-foods">${mealContent}</div>
+                        </div>
+                    </td>
+                `;
+            });
+            
+            html += `</tr>`;
+            
+            // 添加卡路里總計行
+            if (calories) {
+                html += `<tr class="calories-row">`;
+                html += `<td><strong>${day}總計</strong></td>`;
+                html += `<td colspan="3"><strong>約${calories}卡路里</strong></td>`;
+                html += `</tr>`;
+            }
+            
+            return html;
+        }
+
+        // 備用的簡單文字展示函數
+        function generateSimpleMenuDisplay(text) {
+            console.log('📄 使用簡單文字展示模式');
+            
+            if (!text || text.trim().length === 0) {
+                return '<div class="empty-menu-table">❌ 無法生成食譜，請重新嘗試</div>';
+            }
+            
+            // 簡單格式化文字
+            let formattedText = text
+                .replace(/\n/g, '<br>')  // 換行轉換
+                .replace(/(週[一二三四五六日]|星期[一二三四五六日])/g, '<h3 style="color: #667eea; margin: 20px 0 10px 0;">📅 $1</h3>')  // 日期標題
+                .replace(/(早餐|午餐|晚餐)/g, '<strong style="color: #764ba2;">🍽️ $1</strong>')  // 餐次加粗
+                .replace(/(\d+[卡千][路里]?)/g, '<span style="background: #f093fb; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.9rem;">$1</span>');  // 卡路里高亮
+            
+            return `
+                <div style="padding: 20px; background: white; border-radius: 12px; line-height: 1.8;">
+                    <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                        <h3 style="margin: 0; color: white;">🍽️ AI生成的一週食譜</h3>
+                        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9rem;">以下是根據您的偏好客製化的食譜建議</p>
+                    </div>
+                    <div style="font-size: 0.95rem; color: #333;">
+                        ${formattedText}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 确认删除食谱
+        function confirmClearMenu() {
+            pageLog('🗑️ [DELETE] 顯示刪除確認對話框');
+            
+            // 创建确认对话框
+            const confirmDiv = document.createElement('div');
+            confirmDiv.id = 'menu-confirm-dialog'; // 添加ID以便於識別
+            confirmDiv.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            confirmDiv.innerHTML = `
+                <div style="
+                    background: white;
+                    padding: 30px;
+                    border-radius: 15px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                    text-align: center;
+                    max-width: 400px;
+                    margin: 20px;
+                ">
+                    <div style="font-size: 24px; margin-bottom: 15px;">🗑️</div>
+                    <h3 style="color: #333; margin-bottom: 15px;">確認刪除食譜</h3>
+                    <p style="color: #666; margin-bottom: 25px; line-height: 1.5;">
+                        您確定要刪除目前的一週食譜嗎？<br>
+                        刪除後可以重新生成新的食譜計畫。
+                    </p>
+                    <div style="display: flex; gap: 15px; justify-content: center;">
+                        <button onclick="confirmDeleteMenu()" 
+                                style="background: #ff6b6b; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            確認刪除
+                        </button>
+                        <button onclick="cancelDeleteMenu()" 
+                                style="background: #f8f9fa; color: #333; border: 1px solid #e1e5e9; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            取消
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(confirmDiv);
+        }
+        
+        // 確認刪除食譜
+        function confirmDeleteMenu() {
+            pageLog('✅ [DELETE] 用戶確認刪除，執行刪除操作');
+            actualClearMenu();
+            cancelDeleteMenu(); // 關閉對話框
+        }
+        
+        // 取消刪除食譜  
+        function cancelDeleteMenu() {
+            pageLog('❌ [DELETE] 用戶取消刪除，關閉對話框');
+            const dialog = document.getElementById('menu-confirm-dialog');
+            if (dialog) {
+                document.body.removeChild(dialog);
+            }
+        }
+
+        // 实际删除食谱
+        function actualClearMenu() {
+            pageLog('🔄 [DELETE] 開始執行實際刪除操作');
+            
+            const weeklyMenuDiv = document.getElementById('weekly-menu-table');
+            if (!weeklyMenuDiv) {
+                pageLog('❌ [DELETE] 找不到食譜表格元素');
+                return;
+            }
+            
+            // 清空食譜顯示區域
+            weeklyMenuDiv.innerHTML = `
+                <div class="empty-menu-table">
+                    🍽️ 設定您的飲食偏好，開始生成專屬食譜
+                </div>
+            `;
+            pageLog('✅ [DELETE] 食譜顯示區域已清空');
+            
+            // 清除本地存储
+            localStorage.removeItem('weeklyMenu');
+            weeklyMenu = null;
+            pageLog('✅ [DELETE] 本地存儲已清除');
+            
+            // 重置按钮状态
+            resetMenuButtons();
+            pageLog('✅ [DELETE] 按鈕狀態已重置');
+            
+            // 移除锁定样式
+            weeklyMenuDiv.classList.remove('menu-locked');
+            pageLog('✅ [DELETE] 鎖定樣式已移除');
+            
+            pageLog('🎉 [DELETE] 食譜刪除完成！可以重新生成新食譜');
+        }
+
+        // 重置菜单按钮状态
+        function resetMenuButtons() {
+            const generateBtn = document.getElementById('generate-menu-btn');
+            const clearBtn = document.getElementById('clear-menu-btn');
+            
+            if (generateBtn) {
+                generateBtn.style.display = 'inline-block';
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🎯 生成專屬一週食譜';
+                generateBtn.style.opacity = '1';
+                pageLog('🔄 [RESET] 生成按鈕已重置');
+            }
+            
+            if (clearBtn) {
+                clearBtn.style.display = 'none';
+                pageLog('🔄 [RESET] 清除按鈕已隱藏');
+            }
+        }
+
+
+
+        // 页面加载时初始化
+        window.onload = function() {
+            // 从本地存储加载数据
+            const savedProfile = localStorage.getItem('userProfile');
+            const savedGoals = localStorage.getItem('nutritionGoals');
+            const savedFood = localStorage.getItem('todayFood');
+            const savedMenu = localStorage.getItem('weeklyMenu');
+            
+            if (savedProfile) {
+                userProfile = JSON.parse(savedProfile);
+                // 填充表单
+                document.getElementById('age').value = userProfile.age;
+                document.getElementById('height').value = userProfile.height;
+                document.getElementById('weight').value = userProfile.weight;
+                document.getElementById('gender').value = userProfile.gender;
+                document.getElementById('activity').value = userProfile.activity;
+                
+                // 填充新添加的健康信息字段
+                if (userProfile.medicalConditions) {
+                    document.getElementById('medical-conditions').value = userProfile.medicalConditions;
+                }
+                if (userProfile.allergies) {
+                    document.getElementById('allergies').value = userProfile.allergies;
+                }
+            }
+            
+            if (savedGoals) {
+                nutritionGoals = JSON.parse(savedGoals);
+            }
+            
+            if (savedFood) {
+                todayFood = JSON.parse(savedFood);
+                updateFoodLog();
+            }
+            
+            // 恢复一周食谱数据
+            if (savedMenu) {
+                weeklyMenu = JSON.parse(savedMenu);
+                // 检查食谱是否还新鲜（7天内生成的）
+                const daysSinceGenerated = (Date.now() - weeklyMenu.timestamp) / (1000 * 60 * 60 * 24);
+                if (daysSinceGenerated <= 7) {
+                    // 恢复食谱偏好设置
+                    if (weeklyMenu.preferences) {
+                        document.getElementById('diet-goal').value = weeklyMenu.preferences.dietGoal || '';
+                        document.getElementById('cuisine-preference').value = weeklyMenu.preferences.cuisinePreference || 'balanced';
+                        document.getElementById('dislike-foods').value = weeklyMenu.preferences.dislikeFoods || '';
+                        document.getElementById('budget-range').value = weeklyMenu.preferences.budgetRange || 'medium';
+                    }
+                    // 显示保存的食谱表格
+                    const formattedTable = parseWeeklyMenuToTable(weeklyMenu.content);
+                    document.getElementById('weekly-menu-table').innerHTML = formattedTable;
+                    
+                    // 设置按钮状态为已生成
+                    document.getElementById('generate-menu-btn').style.display = 'none';
+                    document.getElementById('clear-menu-btn').style.display = 'inline-block';
+                    document.getElementById('weekly-menu-table').classList.add('menu-locked');
+                } else {
+                    // 食谱太旧，清除并显示默认状态
+                    localStorage.removeItem('weeklyMenu');
+                    weeklyMenu = null;
+                    document.getElementById('weekly-menu-table').innerHTML = `
+                        <div class="empty-menu-table">
+                            🍽️ 设置您的饮食偏好，开始生成专属食谱
+                        </div>
+                    `;
+                    resetMenuButtons();
+                }
+            } else {
+                // 初始化空白食譜顯示
+                document.getElementById('weekly-menu-table').innerHTML = `
+                    <div class="empty-menu-table">
+                        🍽️ 設定您的飲食偏好，開始生成專屬食譜
+                    </div>
+                `;
+                resetMenuButtons();
+            }
+            
+            updateNutritionDisplay();
+            if (Object.keys(userProfile).length > 0) {
+                updateRecommendations();
+                updateHealthAlerts();
+            }
+
+            // 3秒后显示欢迎气泡
+            setTimeout(() => {
+                document.getElementById('assistantBubble').style.display = 'block';
+                bubbleVisible = true;
+                setTimeout(() => {
+                    document.getElementById('assistantBubble').style.display = 'none';
+                    bubbleVisible = false;
+                }, 4000);
+            }, 2000);
+        };
+    </script>
+</body>
+</html> 
