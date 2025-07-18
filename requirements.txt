@@ -1,7 +1,30 @@
-azure-cognitiveservices-vision-computervision==0.9.0
-Pillow>=10.0.0
-requests>=2.31.0
-python-dotenv>=1.0.0
-streamlit>=1.28.0
+# WebEye 硬體控制
 opencv-python>=4.8.0
-numpy>=1.24.0 
+numpy>=1.24.0
+Pillow>=10.0.0
+
+# Azure AI 服務
+azure-cognitiveservices-vision-computervision>=0.9.0
+requests>=2.31.0
+
+# 環境變數管理
+python-dotenv>=1.0.0
+
+# GUI 界面
+tkinter-tooltip>=2.0.0
+Pillow>=10.0.0
+
+# 串流處理
+streamlit>=1.28.0
+
+# 資料處理
+pandas>=1.5.0
+matplotlib>=3.6.0
+seaborn>=0.12.0
+
+# 硬體控制 (如果需要)
+pyserial>=3.5
+pynput>=1.7.0
+
+# 音效處理 (語音提示)
+pygame>=2.5.0 
